@@ -80,11 +80,9 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v4
       - name: Set up Python
-        run: uv python install 3.14
-      - name: Install build dependencies
-        run: uv pip install build
+        run: uv python install 3.14 && uv venv && uv pip install build
       - name: Build package
-        run: rm -rf dist/ && python -m build
+        run: rm -rf dist/ && uv run python -m build
       - name: List dist contents
         run: ls -la dist/
       - uses: actions/upload-artifact@v4
