@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import typer
 
 from reddit_cli.commands.browse import browse
@@ -8,7 +9,7 @@ from reddit_cli.commands.post import post, view
 from reddit_cli.commands.subreddit import subreddit, subreddits
 from reddit_cli.reddit import RedditClient, PostsClient
 
-app = typer.Typer(invoke_without_command=True)
+app = typer.Typer(invoke_without_command=True, add_help_option=False)
 app.command()(browse)
 app.command()(post)
 app.command()(view)
@@ -24,6 +25,10 @@ app.command()(best)
 @app.callback()
 def main() -> None:
     """Browse the frontpage by default."""
+    import sys
+    # Don't run frontpage if help was requested
+    if len(sys.argv) > 1 and sys.argv[1] in ("help", "--help", "-h"):
+        return
     asyncio.run(_frontpage_default())
 
 
