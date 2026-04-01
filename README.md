@@ -13,6 +13,9 @@
 </p>
 
 <p align="center">
+  <a href="https://pypi.org/project/better-reddit-cli/">
+    <img src="https://img.shields.io/pypi/v/better-reddit-cli" alt="PyPI Version">
+  </a>
   <a href="https://github.com/AliiiBenn/reddit-cli">
     <img src="https://img.shields.io/github/license/AliiiBenn/reddit-cli" alt="License">
   </a>
@@ -46,7 +49,7 @@ Explore subreddits, dive into discussions, and discover trending content - all f
 
 ```bash
 # Install
-uv add reddit
+uv add better-reddit-cli
 
 # Browse the frontpage
 reddit
