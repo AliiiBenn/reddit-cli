@@ -1,7 +1,7 @@
 [project]
-name = "reddit"
+name = "better-reddit-cli"
 version = "0.1.0"
-description = "Add your description here"
+description = "A command-line tool for browsing Reddit without requiring an API key"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = ["typer", "httpx", "pydantic"]
@@ -12,6 +12,9 @@ dev = ["pytest"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["reddit_cli"]
 
 [project.scripts]
 reddit = "reddit_cli:app"
