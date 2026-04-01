@@ -17,16 +17,16 @@ async def _subreddit_async(
         subreddits_client = SubredditsClient(client)
 
         if rules:
-            data = await subreddits_client.get_rules(name)
+            rules_data = await subreddits_client.get_rules(name)
             print(f"Rules for r/{name}:")
-            for i, rule in enumerate(data.get("rules", []), 1):
+            for i, rule in enumerate(rules_data.get("rules", []), 1):
                 print(f"  {i}. {rule.get('short_name', 'N/A')}")
                 print(f"     {rule.get('description', 'N/A')[:100]}...")
         elif moderators:
             try:
-                data = await subreddits_client.get_moderators(name)
+                mods_data = await subreddits_client.get_moderators(name)
                 print(f"Moderators of r/{name}:")
-                for mod in data:
+                for mod in mods_data:
                     print(f"  - {mod.get('name', 'N/A')}")
             except Exception:
                 print("Moderators list is not publicly available (requires authentication)")

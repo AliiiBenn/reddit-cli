@@ -2,7 +2,7 @@ import asyncio
 import sys
 import typer
 
-from reddit_cli.reddit import RedditClient, CommentsClient
+from reddit_cli.reddit import RedditClient, CommentsClient, Comment
 
 app = typer.Typer()
 
