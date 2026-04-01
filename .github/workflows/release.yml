@@ -98,8 +98,11 @@ jobs:
         with:
           name: dist
           path: dist/
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+      - name: Set up Python
+        run: uv python install 3.14 && uv venv
       - name: Publish to PyPI
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          uv pip install build && uv run twine upload --skip-existing --username __token__ --password "$PYPI_TOKEN" dist/*
+        run: uv pip install twine && uv run twine upload --skip-existing --username __token__ --password "$PYPI_TOKEN" dist/*
