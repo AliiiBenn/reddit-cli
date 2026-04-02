@@ -1,9 +1,23 @@
 import asyncio
+import httpx
 import typer
 
 from reddit_cli.reddit import RedditClient, PostsClient
 
 app = typer.Typer()
+
+
+def _handle_api_error(e: Exception) -> None:
+    """Print a user-friendly error message for API errors and exit with code 1."""
+    if isinstance(e, httpx.TimeoutException):
+        print("Error: Connection timed out. Please check your internet connection and try again.", file=sys.stderr)
+    elif isinstance(e, httpx.ConnectError):
+        print("Error: Could not connect to Reddit. Please check your internet connection.", file=sys.stderr)
+    elif isinstance(e, httpx.HTTPStatusError):
+        print(f"Error: Reddit API returned status {e.response.status_code}. Please try again later.", file=sys.stderr)
+    else:
+        print(f"Error: {e}", file=sys.stderr)
+    raise typer.Exit(1)
 
 
 async def _browse_frontpage_async(
@@ -52,7 +66,10 @@ def frontpage(
         after: Pagination cursor
         before: Pagination cursor
     """
-    asyncio.run(_browse_frontpage_async(sort, limit, period, after, before))
+    try:
+        asyncio.run(_browse_frontpage_async(sort, limit, period, after, before))
+    except Exception as e:
+        _handle_api_error(e)
 
 
 @app.command(name="home")
@@ -72,7 +89,10 @@ def home(
         after: Pagination cursor
         before: Pagination cursor
     """
-    asyncio.run(_browse_frontpage_async(sort, limit, period, after, before))
+    try:
+        asyncio.run(_browse_frontpage_async(sort, limit, period, after, before))
+    except Exception as e:
+        _handle_api_error(e)
 
 
 @app.command(name="best")
@@ -90,4 +110,7 @@ def best(
         after: Pagination cursor
         before: Pagination cursor
     """
-    asyncio.run(_browse_frontpage_async("top", limit, period, after, before))
+    try:
+        asyncio.run(_browse_frontpage_async("top", limit, period, after, before))
+    except Exception as e:
+        _handle_api_error(e)

@@ -1,10 +1,24 @@
 import asyncio
 import sys
+import httpx
 import typer
 
 from reddit_cli.reddit import RedditClient, CommentsClient, Comment
 
 app = typer.Typer()
+
+
+def _handle_api_error(e: Exception) -> None:
+    """Print a user-friendly error message for API errors and exit with code 1."""
+    if isinstance(e, httpx.TimeoutException):
+        print("Error: Connection timed out. Please check your internet connection and try again.", file=sys.stderr)
+    elif isinstance(e, httpx.ConnectError):
+        print("Error: Could not connect to Reddit. Please check your internet connection.", file=sys.stderr)
+    elif isinstance(e, httpx.HTTPStatusError):
+        print(f"Error: Reddit API returned status {e.response.status_code}. Please try again later.", file=sys.stderr)
+    else:
+        print(f"Error: {e}", file=sys.stderr)
+    raise typer.Exit(1)
 
 
 async def _comments_async(
@@ -49,7 +63,10 @@ def comments(
         sort: Sort type (confidence, top, new, old, controversial, qa)
         depth: Maximum comment depth
     """
-    asyncio.run(_comments_async(post_id, sort, depth))
+    try:
+        asyncio.run(_comments_async(post_id, sort, depth))
+    except Exception as e:
+        _handle_api_error(e)
 
 
 # Alias
@@ -66,7 +83,10 @@ def comment(
         comment_id: Comment ID (with or without t1_ prefix)
         replies: Include replies
     """
-    asyncio.run(_comment_async(post_id, comment_id, replies))
+    try:
+        asyncio.run(_comment_async(post_id, comment_id, replies))
+    except Exception as e:
+        _handle_api_error(e)
 
 
 async def _comment_async(

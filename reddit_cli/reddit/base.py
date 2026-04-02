@@ -5,12 +5,16 @@ class RedditClient:
     """Async HTTP client for Reddit JSON API."""
 
     BASE_URL = "https://www.reddit.com"
+    TIMEOUT = 10.0  # seconds
 
     def __init__(self) -> None:
         self._client: httpx.AsyncClient | None = None
 
     async def __aenter__(self) -> "RedditClient":
-        self._client = httpx.AsyncClient(base_url=self.BASE_URL)
+        self._client = httpx.AsyncClient(
+            base_url=self.BASE_URL,
+            timeout=httpx.Timeout(self.TIMEOUT, connect=5.0)
+        )
         return self
 
     async def __aexit__(self, *args: object) -> None:

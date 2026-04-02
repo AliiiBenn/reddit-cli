@@ -1,9 +1,24 @@
 import asyncio
+import sys
+import httpx
 import typer
 
 from reddit_cli.reddit import RedditClient, PostsClient
 
 app = typer.Typer()
+
+
+def _handle_api_error(e: Exception) -> None:
+    """Print a user-friendly error message for API errors and exit with code 1."""
+    if isinstance(e, httpx.TimeoutException):
+        print("Error: Connection timed out. Please check your internet connection and try again.", file=sys.stderr)
+    elif isinstance(e, httpx.ConnectError):
+        print("Error: Could not connect to Reddit. Please check your internet connection.", file=sys.stderr)
+    elif isinstance(e, httpx.HTTPStatusError):
+        print(f"Error: Reddit API returned status {e.response.status_code}. Please try again later.", file=sys.stderr)
+    else:
+        print(f"Error: {e}", file=sys.stderr)
+    raise typer.Exit(1)
 
 
 @app.command()
@@ -21,7 +36,10 @@ def search(
         limit: Number of results
         period: Time period (day, week, month, year, all)
     """
-    asyncio.run(_search_async(query, sort, limit, period))
+    try:
+        asyncio.run(_search_async(query, sort, limit, period))
+    except Exception as e:
+        _handle_api_error(e)
 
 
 async def _search_async(
