@@ -1,6 +1,6 @@
 [project]
 name = "better-reddit-cli"
-version = "0.4.1"
+version = "0.4.2"
 description = "A command-line tool for browsing Reddit without requiring an API key"
 readme = "README.md"
 requires-python = ">=3.14"
