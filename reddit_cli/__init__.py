@@ -1,3 +1,4 @@
+import sys
 import typer
 
 from reddit_cli.commands.browse import browse
@@ -7,29 +8,13 @@ from reddit_cli.commands.post import post
 from reddit_cli.commands.search import search
 from reddit_cli.commands.subreddit import subreddit, subreddits
 
-app = typer.Typer(add_help_option=False)
-app.command()(browse)
-app.command()(post)
-app.command()(subreddit)
-app.command()(subreddits)
-app.command()(comments)
-app.command()(comment)
-app.command()(frontpage)
-app.command()(home)
-app.command()(best)
-app.command()(search)
+
+def show_help() -> None:
+    """Show custom help text."""
+    print(HELP_TEXT)
 
 
-@app.command()
-def ping() -> None:
-    """Ping the CLI."""
-    print("pong")
-
-
-@app.command(name="help")
-def help_cmd() -> None:
-    """Show this help message with all available commands."""
-    print("""
+HELP_TEXT = """
 Reddit CLI - Browse Reddit from your terminal
 
 USAGE
@@ -104,4 +89,39 @@ EXAMPLES
     reddit subreddits --new
 
 For more information: https://github.com/AliiiBenn/reddit-cli
-""")
+"""
+
+
+# Check for help flags before Typer processes them
+if len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] in ("--help", "-h", "help")):
+    if "--help" in sys.argv or "-h" in sys.argv or (len(sys.argv) == 1):
+        show_help()
+        raise SystemExit(0)
+
+app = typer.Typer()
+app.command()(browse)
+app.command()(post)
+app.command()(subreddit)
+app.command()(subreddits)
+app.command()(comments)
+app.command()(comment)
+app.command()(frontpage)
+app.command()(home)
+app.command()(best)
+app.command()(search)
+
+
+@app.command()
+def ping() -> None:
+    """Ping the CLI."""
+    print("pong")
+
+
+@app.command(name="help")
+def help_cmd() -> None:
+    """Show this help message with all available commands."""
+    print(HELP_TEXT)
+
+
+if __name__ == "__main__":
+    app()
