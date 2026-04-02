@@ -4,7 +4,7 @@ import typer
 
 from reddit_cli.reddit import RedditClient, PostsClient
 
-post_app = typer.Typer()
+app = typer.Typer()
 
 
 async def _post_async(post_id: str) -> None:
@@ -23,46 +23,6 @@ async def _post_async(post_id: str) -> None:
         print()
         if post.selftext:
             print(post.selftext.encode(sys.stdout.encoding, errors="replace").decode(sys.stdout.encoding))
-
-
-@post_app.callback(invoke_without_command=True)
-def post(post_id: str) -> None:
-    """View a single post by ID.
-
-    Args:
-        post_id: Post ID (with or without t3_ prefix)
-    """
-    asyncio.run(_post_async(post_id))
-
-
-@post_app.command(name="view")
-def view(post_id: str) -> None:
-    """Alias for post command.
-
-    Args:
-        post_id: Post ID (with or without t3_ prefix)
-    """
-    asyncio.run(_post_async(post_id))
-
-
-@post_app.command(name="info")
-def info(post_id: str) -> None:
-    """Get detailed info about a post.
-
-    Args:
-        post_id: Post ID (with or without t3_ prefix)
-    """
-    asyncio.run(_post_async(post_id))
-
-
-@post_app.command(name="duplicates")
-def duplicates(post_id: str) -> None:
-    """Get all crossposts/duplicates of a post.
-
-    Args:
-        post_id: Post ID (with or without t3_ prefix)
-    """
-    asyncio.run(_duplicates_async(post_id))
 
 
 async def _duplicates_async(post_id: str) -> None:
@@ -86,3 +46,28 @@ async def _duplicates_async(post_id: str) -> None:
                 print()
         else:
             print("No crossposts found.")
+
+
+@app.command(name="post")
+def post(
+    post_id: str,
+    view: bool = False,
+    info: bool = False,
+    duplicates: bool = False,
+) -> None:
+    """View a single post by ID.
+
+    Args:
+        post_id: Post ID (with or without t3_ prefix)
+        view: Show post details (alias for post)
+        info: Show detailed post info
+        duplicates: Show crossposts/duplicates of the post
+    """
+    if duplicates:
+        asyncio.run(_duplicates_async(post_id))
+    else:
+        asyncio.run(_post_async(post_id))
+
+
+if __name__ == "__main__":
+    app()

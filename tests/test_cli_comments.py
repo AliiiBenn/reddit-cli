@@ -63,22 +63,26 @@ def sample_comment_thread_response() -> dict:
                         "depth": 0,
                         "parent_id": "t3_abc123",
                         "link_id": "t3_abc123",
-                        "replies": [
-                            {
-                                "kind": "t1",
-                                "data": {
-                                    "id": "reply1",
-                                    "body": "This is a reply",
-                                    "author": "replier",
-                                    "score": 20,
-                                    "created_utc": 1704067201.0,
-                                    "depth": 1,
-                                    "parent_id": "t1_comment1",
-                                    "link_id": "t3_abc123",
-                                    "replies": [],
-                                },
+                        "replies": {
+                            "data": {
+                                "children": [
+                                    {
+                                        "kind": "t1",
+                                        "data": {
+                                            "id": "reply1",
+                                            "body": "This is a reply",
+                                            "author": "replier",
+                                            "score": 20,
+                                            "created_utc": 1704067201.0,
+                                            "depth": 1,
+                                            "parent_id": "t1_comment1",
+                                            "link_id": "t3_abc123",
+                                            "replies": "",
+                                        },
+                                    }
+                                ]
                             }
-                        ],
+                        },
                     },
                 }
             ]

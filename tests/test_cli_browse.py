@@ -1,4 +1,4 @@
-"""Tests for browse commands: browse, sticky, random, browse search."""
+"""Tests for browse commands: browse, --sticky, --random, --search."""
 import pytest
 import respx
 import httpx
@@ -94,7 +94,7 @@ class TestBrowse:
         mock_reddit_base.get("/r/python/hot.json").mock(
             return_value=httpx.Response(200, json=sample_browse_response)
         )
-        result = runner.invoke(app, ["browse", "--limit", "10", "python"])
+        result = runner.invoke(app, ["browse", "python", "--limit", "10"])
         assert result.exit_code == 0
 
     def test_browse_with_sort(
@@ -104,7 +104,7 @@ class TestBrowse:
         mock_reddit_base.get("/r/python/new.json").mock(
             return_value=httpx.Response(200, json=sample_browse_response)
         )
-        result = runner.invoke(app, ["browse", "--sort", "new", "python"])
+        result = runner.invoke(app, ["browse", "python", "--sort", "new"])
         assert result.exit_code == 0
 
     def test_browse_with_period(
@@ -114,7 +114,7 @@ class TestBrowse:
         mock_reddit_base.get("/r/python/top.json").mock(
             return_value=httpx.Response(200, json=sample_browse_response)
         )
-        result = runner.invoke(app, ["browse", "--sort", "top", "--period", "week", "python"])
+        result = runner.invoke(app, ["browse", "python", "--sort", "top", "--period", "week"])
         assert result.exit_code == 0
 
     def test_browse_missing_subreddit(self, runner: CliRunner):
@@ -124,77 +124,77 @@ class TestBrowse:
 
 
 class TestBrowseSticky:
-    """Test suite for browse sticky command."""
+    """Test suite for browse --sticky command."""
 
     def test_sticky_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_sticky_response
     ):
-        """browse sticky should exit with code 0."""
-        mock_reddit_base.get("/r/python/hot.json").mock(
+        """browse python --sticky should exit with code 0."""
+        mock_reddit_base.get("/r/python/sticky.json").mock(
             return_value=httpx.Response(200, json=sample_sticky_response)
         )
-        result = runner.invoke(app, ["browse", "sticky", "python"])
+        result = runner.invoke(app, ["browse", "python", "--sticky"])
         assert result.exit_code == 0
 
     def test_sticky_output_contains_post(
         self, runner: CliRunner, mock_reddit_base, sample_sticky_response
     ):
-        """browse sticky output should contain sticky post."""
-        mock_reddit_base.get("/r/python/hot.json").mock(
+        """browse python --sticky output should contain sticky post."""
+        mock_reddit_base.get("/r/python/sticky.json").mock(
             return_value=httpx.Response(200, json=sample_sticky_response)
         )
-        result = runner.invoke(app, ["browse", "sticky", "python"])
+        result = runner.invoke(app, ["browse", "python", "--sticky"])
         assert "Welcome to r/python" in result.output
 
 
 class TestBrowseRandom:
-    """Test suite for browse random command."""
+    """Test suite for browse --random command."""
 
     def test_random_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_browse_response
     ):
-        """browse random should exit with code 0."""
+        """browse python --random should exit with code 0."""
         mock_reddit_base.get("/r/python/random.json").mock(
             return_value=httpx.Response(200, json=sample_browse_response)
         )
-        result = runner.invoke(app, ["browse", "random", "python"])
+        result = runner.invoke(app, ["browse", "python", "--random"])
         assert result.exit_code == 0
 
     def test_random_output_contains_post(
         self, runner: CliRunner, mock_reddit_base, sample_browse_response
     ):
-        """browse random output should contain post."""
+        """browse python --random output should contain post."""
         mock_reddit_base.get("/r/python/random.json").mock(
             return_value=httpx.Response(200, json=sample_browse_response)
         )
-        result = runner.invoke(app, ["browse", "random", "python"])
+        result = runner.invoke(app, ["browse", "python", "--random"])
         assert "Python Tip of the Day" in result.output
 
 
 class TestBrowseSearch:
-    """Test suite for browse search command."""
+    """Test suite for browse --search command."""
 
     def test_browse_search_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_browse_response
     ):
-        """browse search should exit with code 0."""
+        """browse python --search should exit with code 0."""
         mock_reddit_base.get("/r/python/search.json").mock(
             return_value=httpx.Response(200, json=sample_browse_response)
         )
-        result = runner.invoke(app, ["browse", "search", "python", "django"])
+        result = runner.invoke(app, ["browse", "python", "--search", "django"])
         assert result.exit_code == 0
 
     def test_browse_search_output_contains_query(
         self, runner: CliRunner, mock_reddit_base, sample_browse_response
     ):
-        """browse search output should mention the query."""
+        """browse python --search output should mention the query."""
         mock_reddit_base.get("/r/python/search.json").mock(
             return_value=httpx.Response(200, json=sample_browse_response)
         )
-        result = runner.invoke(app, ["browse", "search", "python", "django"])
+        result = runner.invoke(app, ["browse", "python", "--search", "django"])
         assert "django" in result.output.lower()
 
-    def test_browse_search_missing_args(self, runner: CliRunner):
-        """browse search should require both subreddit and query."""
-        result = runner.invoke(app, ["browse", "search", "python"])
+    def test_browse_search_missing_query(self, runner: CliRunner):
+        """browse python --search should require query."""
+        result = runner.invoke(app, ["browse", "python", "--search"])
         assert result.exit_code != 0

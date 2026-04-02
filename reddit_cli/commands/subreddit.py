@@ -43,7 +43,7 @@ async def _subreddit_async(
             print(f"Description: {desc[:300]}{'...' if len(desc) > 300 else ''}")
 
 
-@subreddit_app.callback(invoke_without_command=True)
+@subreddit_app.command(name="subreddit")
 def subreddit(
     name: str,
     rules: bool = False,
@@ -75,46 +75,46 @@ async def _list_subreddits_async(
             print()
 
 
-@subreddits_app.callback(invoke_without_command=True)
+@subreddits_app.command(name="subreddits")
 def subreddits(
+    search: str | None = None,
+    new: bool = False,
+    gold: bool = False,
+    default: bool = False,
     sort: str = "subscribers",
     limit: int = 25,
 ) -> None:
     """List popular subreddits.
 
     Args:
+        search: Search subreddits by keyword
+        new: List newly created subreddits
+        gold: List Reddit Gold subreddits
+        default: List default subreddits
         sort: Sort type (subscribers, active)
         limit: Number of subreddits to return
     """
-    asyncio.run(_list_subreddits_async(sort, limit))
-
-
-@subreddits_app.command(name="search")
-def search(
-    query: str,
-    limit: int = 10,
-    include_nsfw: bool = False,
-) -> None:
-    """Search subreddits by keyword.
-
-    Args:
-        query: Search query
-        limit: Number of results (max 25)
-        include_nsfw: Include NSFW subreddits
-    """
-    asyncio.run(_search_async(query, limit, include_nsfw))
+    if search:
+        asyncio.run(_search_async(search, limit))
+    elif new:
+        asyncio.run(_new_async(limit))
+    elif gold:
+        asyncio.run(_gold_async(limit))
+    elif default:
+        asyncio.run(_default_async(limit))
+    else:
+        asyncio.run(_list_subreddits_async(sort, limit))
 
 
 async def _search_async(
     query: str,
     limit: int = 10,
-    include_nsfw: bool = False,
 ) -> None:
     """Async implementation of subreddit search."""
     async with RedditClient() as client:
         subreddits_client = SubredditsClient(client)
         subreddits = await subreddits_client.search_subreddits(
-            query, limit, include_nsfw
+            query, limit, False
         )
 
         if not subreddits:
@@ -127,18 +127,6 @@ async def _search_async(
             print(f"  {sub.title}")
             print(f"  Subscribers: {sub.subscribers:,}")
             print()
-
-
-@subreddits_app.command(name="new")
-def new(
-    limit: int = 25,
-) -> None:
-    """List newly created subreddits.
-
-    Args:
-        limit: Number of subreddits to return
-    """
-    asyncio.run(_new_async(limit))
 
 
 async def _new_async(limit: int = 25) -> None:
@@ -154,18 +142,6 @@ async def _new_async(limit: int = 25) -> None:
             print()
 
 
-@subreddits_app.command(name="gold")
-def gold(
-    limit: int = 25,
-) -> None:
-    """List Reddit Gold subreddits.
-
-    Args:
-        limit: Number of subreddits to return
-    """
-    asyncio.run(_gold_async(limit))
-
-
 async def _gold_async(limit: int = 25) -> None:
     """Async implementation of gold subreddits listing."""
     async with RedditClient() as client:
@@ -179,18 +155,6 @@ async def _gold_async(limit: int = 25) -> None:
             print()
 
 
-@subreddits_app.command(name="default")
-def default(
-    limit: int = 25,
-) -> None:
-    """List default subreddits.
-
-    Args:
-        limit: Number of subreddits to return
-    """
-    asyncio.run(_default_async(limit))
-
-
 async def _default_async(limit: int = 25) -> None:
     """Async implementation of default subreddits listing."""
     async with RedditClient() as client:
@@ -202,3 +166,7 @@ async def _default_async(limit: int = 25) -> None:
             print(f"  {sub.title}")
             print(f"  Subscribers: {sub.subscribers:,}")
             print()
+
+
+if __name__ == "__main__":
+    subreddits_app()

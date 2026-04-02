@@ -3,7 +3,7 @@ import typer
 
 from reddit_cli.reddit import RedditClient, PostsClient
 
-browse_app = typer.Typer()
+app = typer.Typer()
 
 
 async def _browse_async(
@@ -36,40 +36,6 @@ async def _browse_async(
                 print(f"Before: {before_cursor}")
 
 
-@browse_app.callback(invoke_without_command=True)
-def browse(
-    subreddit: str,
-    sort: str = "hot",
-    limit: int = 25,
-    period: str | None = None,
-    after: str | None = None,
-    before: str | None = None,
-) -> None:
-    """Browse posts from a subreddit.
-
-    Args:
-        subreddit: Subreddit name (without r/)
-        sort: Sort type (hot, new, top, rising, controversial, gilded)
-        limit: Number of posts to return
-        period: Time period for top/controversial (day, week, month, year, all)
-        after: Pagination cursor (get posts after this ID)
-        before: Pagination cursor (get posts before this ID)
-    """
-    asyncio.run(_browse_async(subreddit, sort, limit, period, after, before))
-
-
-@browse_app.command(name="sticky")
-def sticky(
-    subreddit: str,
-) -> None:
-    """Get the sticky post from a subreddit.
-
-    Args:
-        subreddit: Subreddit name (without r/)
-    """
-    asyncio.run(_sticky_async(subreddit))
-
-
 async def _sticky_async(subreddit: str) -> None:
     """Async implementation of sticky."""
     async with RedditClient() as client:
@@ -80,18 +46,6 @@ async def _sticky_async(subreddit: str) -> None:
         print(f"  r/{post.subreddit} by {post.author}")
         print(f"  {post.num_comments} comments")
         print(f"  URL: {post.url}")
-
-
-@browse_app.command(name="random")
-def random(
-    subreddit: str,
-) -> None:
-    """Get a random post from a subreddit.
-
-    Args:
-        subreddit: Subreddit name (without r/)
-    """
-    asyncio.run(_random_async(subreddit))
 
 
 async def _random_async(subreddit: str) -> None:
@@ -109,27 +63,7 @@ async def _random_async(subreddit: str) -> None:
             print(f"Error: {e}")
 
 
-@browse_app.command(name="search")
-def browse_search(
-    subreddit: str,
-    query: str,
-    sort: str = "relevance",
-    limit: int = 25,
-    period: str | None = None,
-) -> None:
-    """Search within a subreddit.
-
-    Args:
-        subreddit: Subreddit name (without r/)
-        query: Search query
-        sort: Sort type (relevance, hot, top, new, comments)
-        limit: Number of results
-        period: Time period (day, week, month, year, all)
-    """
-    asyncio.run(_browse_search_async(subreddit, query, sort, limit, period))
-
-
-async def _browse_search_async(
+async def _search_async(
     subreddit: str,
     query: str,
     sort: str = "relevance",
@@ -147,6 +81,8 @@ async def _browse_search_async(
             print(f"No posts found matching '{query}' in r/{subreddit}")
             return
 
+        print(f"Search results for '{query}' in r/{subreddit}:")
+        print()
         for post in posts:
             print(f"[{post.score}] {post.title}")
             print(f"  ID: {post.id}")
@@ -160,3 +96,42 @@ async def _browse_search_async(
                 print(f"After: {after_cursor}")
             if before_cursor:
                 print(f"Before: {before_cursor}")
+
+
+@app.command(name="browse")
+def browse(
+    subreddit: str,
+    sticky: bool = False,
+    random: bool = False,
+    search: str | None = None,
+    sort: str = "hot",
+    limit: int = 25,
+    period: str | None = None,
+    after: str | None = None,
+    before: str | None = None,
+) -> None:
+    """Browse posts from a subreddit.
+
+    Args:
+        subreddit: Subreddit name (without r/)
+        sticky: Get the sticky post from the subreddit
+        random: Get a random post from the subreddit
+        search: Search within the subreddit
+        sort: Sort type (hot, new, top, rising, controversial, gilded)
+        limit: Number of posts to return
+        period: Time period for top/controversial (day, week, month, year, all)
+        after: Pagination cursor (get posts after this ID)
+        before: Pagination cursor (get posts before this ID)
+    """
+    if sticky:
+        asyncio.run(_sticky_async(subreddit))
+    elif random:
+        asyncio.run(_random_async(subreddit))
+    elif search:
+        asyncio.run(_search_async(subreddit, search, sort, limit, period))
+    else:
+        asyncio.run(_browse_async(subreddit, sort, limit, period, after, before))
+
+
+if __name__ == "__main__":
+    app()

@@ -94,6 +94,16 @@ class PostsClient:
             post_id = post_id[3:]
 
         data = await self._client.get(f"/api/duplicates/t3_{post_id}.json")
+
+        # Handle list response format (Reddit API returns list for duplicates)
+        if isinstance(data, list) and len(data) >= 2:
+            original = [Post(**p["data"]) for p in data[0].get("data", {}).get("children", [])]
+            duplicates = [Post(**p["data"]) for p in data[1].get("data", {}).get("children", [])]
+            if original:
+                return original[0], duplicates
+            return Post(id="", title="", author="", subreddit="", score=0, num_comments=0, permalink="", url="", created_utc=0.0), []
+
+        # Handle dict response format
         children = data.get("", data.get("data", {}))
 
         if isinstance(children, list) and len(children) >= 2:
