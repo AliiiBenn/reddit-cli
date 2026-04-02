@@ -31,7 +31,6 @@ def _validate_list_params(sort: str, limit: int) -> None:
 async def _subreddit_async(
     name: str,
     rules: bool = False,
-    moderators: bool = False,
 ) -> None:
     """Async implementation of subreddit."""
     try:
@@ -44,14 +43,6 @@ async def _subreddit_async(
                 for i, rule in enumerate(rules_data.get("rules", []), 1):
                     typer.echo(f"  {i}. {rule.get('short_name', 'N/A')}")
                     typer.echo(f"     {rule.get('description', 'N/A')[:100]}...")
-            elif moderators:
-                try:
-                    mods_data = await subreddits_client.get_moderators(name)
-                    typer.echo(f"Moderators of r/{name}:")
-                    for mod in mods_data:
-                        typer.echo(f"  - {mod.get('name', 'N/A')}")
-                except Exception:
-                    typer.echo("Moderators list is not publicly available (requires authentication)")
             else:
                 subreddit = await subreddits_client.get_subreddit(name)
                 typer.echo(f"Subreddit: r/{subreddit.display_name}")
@@ -69,17 +60,15 @@ async def _subreddit_async(
 def subreddit(
     name: str,
     rules: bool = False,
-    moderators: bool = False,
 ) -> None:
     """Get subreddit info.
 
     Args:
         name: Subreddit name (with or without r/ prefix)
         rules: Show subreddit rules
-        moderators: Show subreddit moderators
     """
     try:
-        asyncio.run(_subreddit_async(name, rules, moderators))
+        asyncio.run(_subreddit_async(name, rules))
     except Exception as e:
         handle_api_error(e)
 
