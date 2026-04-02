@@ -62,31 +62,6 @@ async def _browse_async(
                 typer.echo(f"Before: {before_cursor}")
 
 
-async def _sticky_async(subreddit: str) -> None:
-    """Async implementation of sticky."""
-    async with RedditClient() as client:
-        posts_client = PostsClient(client)
-        post = await posts_client.get_sticky(subreddit)
-        typer.echo(f"[{post.score}] {post.title}")
-        typer.echo(f"  ID: {post.id}")
-        typer.echo(f"  r/{post.subreddit} by {post.author}")
-        typer.echo(f"  {post.num_comments} comments")
-        typer.echo(f"  URL: {post.url}")
-
-
-async def _random_async(subreddit: str) -> None:
-    """Async implementation of random."""
-    async with RedditClient() as client:
-        posts_client = PostsClient(client)
-        try:
-            post = await posts_client.get_random(subreddit)
-            typer.echo(f"[{post.score}] {post.title}")
-            typer.echo(f"  ID: {post.id}")
-            typer.echo(f"  r/{post.subreddit} by {post.author}")
-            typer.echo(f"  {post.num_comments} comments")
-            typer.echo(f"  URL: {post.url}")
-        except ValueError as e:
-            typer.echo(f"Error: {e}")
 
 
 async def _search_async(
@@ -126,8 +101,6 @@ async def _search_async(
 
 def browse(
     subreddit: str,
-    sticky: bool = False,
-    random: bool = False,
     search: str | None = None,
     sort: str = "hot",
     limit: int = 25,
@@ -139,8 +112,6 @@ def browse(
 
     Args:
         subreddit: Subreddit name (without r/)
-        sticky: Get the sticky post from the subreddit
-        random: Get a random post from the subreddit
         search: Search within the subreddit
         sort: Sort type (hot, new, top, rising, controversial, gilded)
         limit: Number of posts to return
@@ -149,15 +120,9 @@ def browse(
         before: Pagination cursor (get posts before this ID)
     """
     try:
-        # Validate parameters unless using sticky or random (which don't use them)
-        if not sticky and not random:
-            _validate_sort_period(sort, period, limit)
+        _validate_sort_period(sort, period, limit)
 
-        if sticky:
-            asyncio.run(_sticky_async(subreddit))
-        elif random:
-            asyncio.run(_random_async(subreddit))
-        elif search:
+        if search:
             asyncio.run(_search_async(subreddit, search, sort, limit, period))
         else:
             asyncio.run(_browse_async(subreddit, sort, limit, period, after, before))
