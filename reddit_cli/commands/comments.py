@@ -5,8 +5,6 @@ import typer
 
 from reddit_cli.reddit import RedditClient, CommentsClient, Comment
 
-app = typer.Typer()
-
 
 def _handle_api_error(e: Exception) -> None:
     """Print a user-friendly error message for API errors and exit with code 1."""
@@ -50,7 +48,6 @@ def _print_comment(comment: "Comment", indent: int = 0) -> None:
         _print_comment(reply, indent + 1)
 
 
-@app.command()
 def comments(
     post_id: str,
     sort: str = "confidence",
@@ -70,7 +67,6 @@ def comments(
 
 
 # Alias
-@app.command(name="comment")
 def comment(
     post_id: str,
     comment_id: str,
