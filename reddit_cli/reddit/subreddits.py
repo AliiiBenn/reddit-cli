@@ -83,3 +83,36 @@ class SubredditsClient:
         data = await self._client.get("/subreddits/search.json", params=params)
         subreddits = data.get("data", {}).get("children", [])
         return [Subreddit(**sub["data"]) for sub in subreddits]
+
+    async def list_new(self, limit: int = 25) -> list[Subreddit]:
+        """List newly created subreddits.
+
+        Args:
+            limit: Number of subreddits to return
+        """
+        params: dict[str, int] = {"limit": limit}
+        data = await self._client.get("/subreddits/new.json", params=params)
+        subreddits = data.get("data", {}).get("children", [])
+        return [Subreddit(**sub["data"]) for sub in subreddits]
+
+    async def list_gold(self, limit: int = 25) -> list[Subreddit]:
+        """List Reddit Gold subreddits.
+
+        Args:
+            limit: Number of subreddits to return
+        """
+        params: dict[str, int] = {"limit": limit}
+        data = await self._client.get("/subreddits/gold.json", params=params)
+        subreddits = data.get("data", {}).get("children", [])
+        return [Subreddit(**sub["data"]) for sub in subreddits]
+
+    async def list_default(self, limit: int = 25) -> list[Subreddit]:
+        """List default subreddits.
+
+        Args:
+            limit: Number of subreddits to return
+        """
+        params: dict[str, int] = {"limit": limit}
+        data = await self._client.get("/subreddits/default.json", params=params)
+        subreddits = data.get("data", {}).get("children", [])
+        return [Subreddit(**sub["data"]) for sub in subreddits]

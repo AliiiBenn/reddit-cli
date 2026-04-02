@@ -127,3 +127,78 @@ async def _search_async(
             print(f"  {sub.title}")
             print(f"  Subscribers: {sub.subscribers:,}")
             print()
+
+
+@subreddits_app.command(name="new")
+def new(
+    limit: int = 25,
+) -> None:
+    """List newly created subreddits.
+
+    Args:
+        limit: Number of subreddits to return
+    """
+    asyncio.run(_new_async(limit))
+
+
+async def _new_async(limit: int = 25) -> None:
+    """Async implementation of new subreddits listing."""
+    async with RedditClient() as client:
+        subreddits_client = SubredditsClient(client)
+        subreddits = await subreddits_client.list_new(limit)
+
+        for sub in subreddits:
+            print(f"r/{sub.display_name}")
+            print(f"  {sub.title}")
+            print(f"  Subscribers: {sub.subscribers:,}")
+            print()
+
+
+@subreddits_app.command(name="gold")
+def gold(
+    limit: int = 25,
+) -> None:
+    """List Reddit Gold subreddits.
+
+    Args:
+        limit: Number of subreddits to return
+    """
+    asyncio.run(_gold_async(limit))
+
+
+async def _gold_async(limit: int = 25) -> None:
+    """Async implementation of gold subreddits listing."""
+    async with RedditClient() as client:
+        subreddits_client = SubredditsClient(client)
+        subreddits = await subreddits_client.list_gold(limit)
+
+        for sub in subreddits:
+            print(f"r/{sub.display_name}")
+            print(f"  {sub.title}")
+            print(f"  Subscribers: {sub.subscribers:,}")
+            print()
+
+
+@subreddits_app.command(name="default")
+def default(
+    limit: int = 25,
+) -> None:
+    """List default subreddits.
+
+    Args:
+        limit: Number of subreddits to return
+    """
+    asyncio.run(_default_async(limit))
+
+
+async def _default_async(limit: int = 25) -> None:
+    """Async implementation of default subreddits listing."""
+    async with RedditClient() as client:
+        subreddits_client = SubredditsClient(client)
+        subreddits = await subreddits_client.list_default(limit)
+
+        for sub in subreddits:
+            print(f"r/{sub.display_name}")
+            print(f"  {sub.title}")
+            print(f"  Subscribers: {sub.subscribers:,}")
+            print()

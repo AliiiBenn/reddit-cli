@@ -1,22 +1,23 @@
 import typer
 
-from reddit_cli.commands.browse import browse
+from reddit_cli.commands.browse import browse_app
 from reddit_cli.commands.comments import comment, comments
 from reddit_cli.commands.navigation import best, frontpage, home
-from reddit_cli.commands.post import post, view
+from reddit_cli.commands.post import post_app
+from reddit_cli.commands.search import search
 from reddit_cli.commands.subreddit import subreddit_app, subreddits_app
 
 app = typer.Typer(add_help_option=False)
+app.add_typer(browse_app, name="browse")
+app.add_typer(post_app, name="post")
 app.add_typer(subreddit_app, name="subreddit")
 app.add_typer(subreddits_app, name="subreddits")
-app.command()(browse)
-app.command()(post)
-app.command()(view)
 app.command()(comments)
 app.command()(comment)
 app.command()(frontpage)
 app.command()(home)
 app.command()(best)
+app.command()(search)
 
 
 @app.command()
@@ -47,9 +48,22 @@ BROWSE
         --after <id>                      Pagination: next page
         --before <id>                     Pagination: previous page
 
+    reddit browse <subreddit> sticky      Get sticky post
+    reddit browse <subreddit> random      Get random post
+    reddit browse <subreddit> search <q>  Search within subreddit
+        --sort relevance|hot|top|new|comments
+        --period day|week|month|year|all
+
+SEARCH
+    reddit search <query>                 Search posts globally
+        --sort relevance|hot|top|new|comments
+        --period day|week|month|year|all
+        --limit <n>
+
 POSTS
-    reddit view <post_id>           View a post with details
-    reddit post <post_id>           Alias for view
+    reddit post view <post_id>            View a post with details
+    reddit post duplicates <post_id>      Get crossposts of a post
+    reddit post info <post_id>            Get post info
 
 COMMENTS
     reddit comments <post_id>       View comments for a post
@@ -72,14 +86,23 @@ SUBREDDITS
         --limit <n>               Number of results (max 25)
         --include-nsfw            Include NSFW subreddits
 
+    reddit subreddits new            List newly created subreddits
+    reddit subreddits gold            List Reddit Gold subreddits
+    reddit subreddits default         List default subreddits
+
 EXAMPLES
     reddit frontpage
     reddit browse python --sort hot --limit 10
-    reddit view t3_abc123
+    reddit browse python sticky
+    reddit browse python random
+    reddit browse python search javascript --limit 20
+    reddit search programming --sort top --period month
+    reddit post duplicates t3_abc123
     reddit comments t3_abc123 --sort top --depth 3
     reddit subreddit python --rules
     reddit subreddits --sort subscribers
     reddit subreddits search python --limit 10
+    reddit subreddits new
 
 For more information: https://github.com/AliiiBenn/reddit-cli
 """)

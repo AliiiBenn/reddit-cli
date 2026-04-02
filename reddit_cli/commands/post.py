@@ -4,7 +4,7 @@ import typer
 
 from reddit_cli.reddit import RedditClient, PostsClient
 
-app = typer.Typer()
+post_app = typer.Typer()
 
 
 async def _post_async(post_id: str) -> None:
@@ -25,7 +25,7 @@ async def _post_async(post_id: str) -> None:
             print(post.selftext.encode(sys.stdout.encoding, errors="replace").decode(sys.stdout.encoding))
 
 
-@app.command()
+@post_app.command()
 def post(post_id: str) -> None:
     """View a single post by ID.
 
@@ -35,7 +35,7 @@ def post(post_id: str) -> None:
     asyncio.run(_post_async(post_id))
 
 
-@app.command(name="view")
+@post_app.command(name="view")
 def view(post_id: str) -> None:
     """Alias for post command.
 
@@ -43,3 +43,46 @@ def view(post_id: str) -> None:
         post_id: Post ID (with or without t3_ prefix)
     """
     asyncio.run(_post_async(post_id))
+
+
+@post_app.command(name="info")
+def info(post_id: str) -> None:
+    """Get detailed info about a post.
+
+    Args:
+        post_id: Post ID (with or without t3_ prefix)
+    """
+    asyncio.run(_post_async(post_id))
+
+
+@post_app.command(name="duplicates")
+def duplicates(post_id: str) -> None:
+    """Get all crossposts/duplicates of a post.
+
+    Args:
+        post_id: Post ID (with or without t3_ prefix)
+    """
+    asyncio.run(_duplicates_async(post_id))
+
+
+async def _duplicates_async(post_id: str) -> None:
+    """Async implementation of duplicates."""
+    async with RedditClient() as client:
+        posts_client = PostsClient(client)
+        original, crossposts = await posts_client.get_duplicates(post_id)
+
+        print("Original Post:")
+        print(f"  [{original.score}] {original.title}")
+        print(f"  r/{original.subreddit} by {original.author}")
+        print(f"  https://reddit.com{original.permalink}")
+        print()
+
+        if crossposts:
+            print(f"Crossposts ({len(crossposts)}):")
+            for cp in crossposts:
+                print(f"  [{cp.score}] {cp.title}")
+                print(f"    r/{cp.subreddit} by {cp.author}")
+                print(f"    https://reddit.com{cp.permalink}")
+                print()
+        else:
+            print("No crossposts found.")
