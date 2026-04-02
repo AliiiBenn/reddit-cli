@@ -25,7 +25,7 @@ async def _post_async(post_id: str) -> None:
             print(post.selftext.encode(sys.stdout.encoding, errors="replace").decode(sys.stdout.encoding))
 
 
-@post_app.command()
+@post_app.callback(invoke_without_command=True)
 def post(post_id: str) -> None:
     """View a single post by ID.
 

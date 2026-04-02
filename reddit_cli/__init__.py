@@ -21,9 +21,9 @@ app.command()(search)
 
 
 @app.command()
-def ping() -> str:
+def ping() -> None:
     """Ping the CLI."""
-    return "pong"
+    print("pong")
 
 
 @app.command(name="help")

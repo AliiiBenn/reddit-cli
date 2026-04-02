@@ -43,7 +43,7 @@ async def _subreddit_async(
             print(f"Description: {desc[:300]}{'...' if len(desc) > 300 else ''}")
 
 
-@subreddit_app.command()
+@subreddit_app.callback(invoke_without_command=True)
 def subreddit(
     name: str,
     rules: bool = False,
@@ -75,7 +75,7 @@ async def _list_subreddits_async(
             print()
 
 
-@subreddits_app.command(name="subreddits")
+@subreddits_app.callback(invoke_without_command=True)
 def subreddits(
     sort: str = "subscribers",
     limit: int = 25,

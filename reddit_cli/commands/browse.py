@@ -36,7 +36,7 @@ async def _browse_async(
                 print(f"Before: {before_cursor}")
 
 
-@browse_app.command()
+@browse_app.callback(invoke_without_command=True)
 def browse(
     subreddit: str,
     sort: str = "hot",
