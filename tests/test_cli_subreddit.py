@@ -1,6 +1,5 @@
 """Tests for subreddit commands: subreddit, subreddits, subreddits --search/--new/--gold/--default."""
 import pytest
-import respx
 import httpx
 from typer.testing import CliRunner
 

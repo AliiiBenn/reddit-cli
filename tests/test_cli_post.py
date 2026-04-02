@@ -1,6 +1,5 @@
 """Tests for post commands: post, --view, --info, --duplicates."""
 import pytest
-import respx
 import httpx
 from typer.testing import CliRunner
 

@@ -1,6 +1,5 @@
 """Tests for comments commands: comments, comment."""
 import pytest
-import respx
 import httpx
 from typer.testing import CliRunner
 

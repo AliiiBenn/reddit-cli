@@ -1,6 +1,4 @@
 """Tests for navigation commands: frontpage, home, best."""
-import pytest
-import respx
 import httpx
 from typer.testing import CliRunner
 

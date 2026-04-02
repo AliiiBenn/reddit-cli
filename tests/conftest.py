@@ -4,7 +4,6 @@ import respx
 import httpx
 from typer.testing import CliRunner
 
-from reddit_cli import app
 
 
 @pytest.fixture

@@ -1,7 +1,4 @@
 """Tests for API error handling: 404, 500, network failures, rate limiting."""
-import pytest
-import respx
-import httpx
 from typer.testing import CliRunner
 
 from reddit_cli import app

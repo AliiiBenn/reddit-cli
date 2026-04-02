@@ -1,6 +1,5 @@
 """Tests for browse commands: browse, --sticky, --random, --search."""
 import pytest
-import respx
 import httpx
 from typer.testing import CliRunner
 
