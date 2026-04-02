@@ -1,25 +1,31 @@
 import asyncio
 import sys
-import httpx
 import typer
 
+from reddit_cli.errors import handle_api_error, handle_validation_error
 from reddit_cli.reddit import RedditClient, SubredditsClient
 
-subreddit_app = typer.Typer()
-subreddits_app = typer.Typer()
+
+# Valid values for CLI validation
+VALID_SUBREDDIT_SORT_VALUES = ["gilded", "subscribers", "active"]
 
 
-def _handle_api_error(e: Exception) -> None:
-    """Print a user-friendly error message for API errors and exit with code 1."""
-    if isinstance(e, httpx.TimeoutException):
-        print("Error: Connection timed out. Please check your internet connection and try again.", file=sys.stderr)
-    elif isinstance(e, httpx.ConnectError):
-        print("Error: Could not connect to Reddit. Please check your internet connection.", file=sys.stderr)
-    elif isinstance(e, httpx.HTTPStatusError):
-        print(f"Error: Reddit API returned status {e.response.status_code}. Please try again later.", file=sys.stderr)
-    else:
-        print(f"Error: {e}", file=sys.stderr)
-    raise typer.Exit(1)
+def _validate_list_params(sort: str, limit: int) -> None:
+    """Validate sort and limit parameters.
+
+    Args:
+        sort: Sort type
+        limit: Number of results
+
+    Raises:
+        typer.Exit: If validation fails with exit code 2
+    """
+    if sort not in VALID_SUBREDDIT_SORT_VALUES:
+        handle_validation_error("sort", VALID_SUBREDDIT_SORT_VALUES, sort)
+
+    if limit < 1 or limit > 100:
+        typer.echo("Error: --limit must be between 1 and 100", err=True)
+        raise typer.Exit(code=2)
 
 
 async def _subreddit_async(
@@ -34,33 +40,32 @@ async def _subreddit_async(
 
             if rules:
                 rules_data = await subreddits_client.get_rules(name)
-                print(f"Rules for r/{name}:")
+                typer.echo(f"Rules for r/{name}:")
                 for i, rule in enumerate(rules_data.get("rules", []), 1):
-                    print(f"  {i}. {rule.get('short_name', 'N/A')}")
-                    print(f"     {rule.get('description', 'N/A')[:100]}...")
+                    typer.echo(f"  {i}. {rule.get('short_name', 'N/A')}")
+                    typer.echo(f"     {rule.get('description', 'N/A')[:100]}...")
             elif moderators:
                 try:
                     mods_data = await subreddits_client.get_moderators(name)
-                    print(f"Moderators of r/{name}:")
+                    typer.echo(f"Moderators of r/{name}:")
                     for mod in mods_data:
-                        print(f"  - {mod.get('name', 'N/A')}")
+                        typer.echo(f"  - {mod.get('name', 'N/A')}")
                 except Exception:
-                    print("Moderators list is not publicly available (requires authentication)")
+                    typer.echo("Moderators list is not publicly available (requires authentication)")
             else:
                 subreddit = await subreddits_client.get_subreddit(name)
-                print(f"Subreddit: r/{subreddit.display_name}")
-                print(f"Title: {subreddit.title}")
-                print(f"Subscribers: {subreddit.subscribers:,}")
-                print(f"Active users: {subreddit.active_users:,}")
+                typer.echo(f"Subreddit: r/{subreddit.display_name}")
+                typer.echo(f"Title: {subreddit.title}")
+                typer.echo(f"Subscribers: {subreddit.subscribers:,}")
+                typer.echo(f"Active users: {subreddit.active_users:,}")
                 desc = subreddit.description.encode(
                     sys.stdout.encoding, errors="replace"
                 ).decode(sys.stdout.encoding)
-                print(f"Description: {desc[:300]}{'...' if len(desc) > 300 else ''}")
+                typer.echo(f"Description: {desc[:300]}{'...' if len(desc) > 300 else ''}")
     except Exception as e:
-        _handle_api_error(e)
+        handle_api_error(e)
 
 
-@subreddit_app.command(name="subreddit")
 def subreddit(
     name: str,
     rules: bool = False,
@@ -76,7 +81,7 @@ def subreddit(
     try:
         asyncio.run(_subreddit_async(name, rules, moderators))
     except Exception as e:
-        _handle_api_error(e)
+        handle_api_error(e)
 
 
 async def _list_subreddits_async(
@@ -89,13 +94,12 @@ async def _list_subreddits_async(
         subreddits = await subreddits_client.list_subreddits(sort, limit)
 
         for sub in subreddits:
-            print(f"r/{sub.display_name}")
-            print(f"  {sub.title}")
-            print(f"  Subscribers: {sub.subscribers:,}")
-            print()
+            typer.echo(f"r/{sub.display_name}")
+            typer.echo(f"  {sub.title}")
+            typer.echo(f"  Subscribers: {sub.subscribers:,}")
+            typer.echo()
 
 
-@subreddits_app.command(name="subreddits")
 def subreddits(
     search: str | None = None,
     new: bool = False,
@@ -124,9 +128,10 @@ def subreddits(
         elif default:
             asyncio.run(_default_async(limit))
         else:
+            _validate_list_params(sort, limit)
             asyncio.run(_list_subreddits_async(sort, limit))
     except Exception as e:
-        _handle_api_error(e)
+        handle_api_error(e)
 
 
 async def _search_async(
@@ -141,15 +146,15 @@ async def _search_async(
         )
 
         if not subreddits:
-            print(f"No subreddits found matching '{query}'")
+            typer.echo(f"No subreddits found matching '{query}'")
             return
 
         for sub in subreddits:
             nsfw_tag = " [NSFW]" if getattr(sub, "over_18", False) else ""
-            print(f"r/{sub.display_name}{nsfw_tag}")
-            print(f"  {sub.title}")
-            print(f"  Subscribers: {sub.subscribers:,}")
-            print()
+            typer.echo(f"r/{sub.display_name}{nsfw_tag}")
+            typer.echo(f"  {sub.title}")
+            typer.echo(f"  Subscribers: {sub.subscribers:,}")
+            typer.echo()
 
 
 async def _new_async(limit: int = 25) -> None:
@@ -159,10 +164,10 @@ async def _new_async(limit: int = 25) -> None:
         subreddits = await subreddits_client.list_new(limit)
 
         for sub in subreddits:
-            print(f"r/{sub.display_name}")
-            print(f"  {sub.title}")
-            print(f"  Subscribers: {sub.subscribers:,}")
-            print()
+            typer.echo(f"r/{sub.display_name}")
+            typer.echo(f"  {sub.title}")
+            typer.echo(f"  Subscribers: {sub.subscribers:,}")
+            typer.echo()
 
 
 async def _gold_async(limit: int = 25) -> None:
@@ -172,10 +177,10 @@ async def _gold_async(limit: int = 25) -> None:
         subreddits = await subreddits_client.list_gold(limit)
 
         for sub in subreddits:
-            print(f"r/{sub.display_name}")
-            print(f"  {sub.title}")
-            print(f"  Subscribers: {sub.subscribers:,}")
-            print()
+            typer.echo(f"r/{sub.display_name}")
+            typer.echo(f"  {sub.title}")
+            typer.echo(f"  Subscribers: {sub.subscribers:,}")
+            typer.echo()
 
 
 async def _default_async(limit: int = 25) -> None:
@@ -185,11 +190,7 @@ async def _default_async(limit: int = 25) -> None:
         subreddits = await subreddits_client.list_default(limit)
 
         for sub in subreddits:
-            print(f"r/{sub.display_name}")
-            print(f"  {sub.title}")
-            print(f"  Subscribers: {sub.subscribers:,}")
-            print()
-
-
-if __name__ == "__main__":
-    subreddits_app()
+            typer.echo(f"r/{sub.display_name}")
+            typer.echo(f"  {sub.title}")
+            typer.echo(f"  Subscribers: {sub.subscribers:,}")
+            typer.echo()

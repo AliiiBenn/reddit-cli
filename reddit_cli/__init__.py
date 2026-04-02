@@ -10,7 +10,7 @@ from reddit_cli.commands.subreddit import subreddit, subreddits
 
 def show_help() -> None:
     """Show custom help text."""
-    print(HELP_TEXT)
+    typer.echo(HELP_TEXT)
 
 
 HELP_TEXT = """
@@ -107,13 +107,13 @@ app.command()(search)
 @app.command()
 def ping() -> None:
     """Ping the CLI."""
-    print("pong")
+    typer.echo("pong")
 
 
 @app.command(name="help")
 def help_cmd() -> None:
     """Show this help message with all available commands."""
-    print(HELP_TEXT)
+    typer.echo(HELP_TEXT)
 
 
 @app.callback(invoke_without_command=True)

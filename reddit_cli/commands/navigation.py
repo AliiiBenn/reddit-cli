@@ -1,24 +1,35 @@
 import asyncio
-import sys
-import httpx
 import typer
 
+from reddit_cli.errors import handle_api_error, handle_validation_error
 from reddit_cli.reddit import RedditClient, PostsClient
 
-app = typer.Typer()
+
+# Valid values for CLI validation
+VALID_SORT_VALUES = ["hot", "new", "top", "rising", "controversial", "gilded"]
+VALID_PERIOD_VALUES = ["day", "week", "month", "year", "all"]
 
 
-def _handle_api_error(e: Exception) -> None:
-    """Print a user-friendly error message for API errors and exit with code 1."""
-    if isinstance(e, httpx.TimeoutException):
-        print("Error: Connection timed out. Please check your internet connection and try again.", file=sys.stderr)
-    elif isinstance(e, httpx.ConnectError):
-        print("Error: Could not connect to Reddit. Please check your internet connection.", file=sys.stderr)
-    elif isinstance(e, httpx.HTTPStatusError):
-        print(f"Error: Reddit API returned status {e.response.status_code}. Please try again later.", file=sys.stderr)
-    else:
-        print(f"Error: {e}", file=sys.stderr)
-    raise typer.Exit(1)
+def _validate_sort_period(sort: str, period: str | None, limit: int) -> None:
+    """Validate sort, period, and limit parameters.
+
+    Args:
+        sort: Sort type
+        period: Time period (or None)
+        limit: Number of results
+
+    Raises:
+        typer.Exit: If validation fails with exit code 2
+    """
+    if sort not in VALID_SORT_VALUES:
+        handle_validation_error("sort", VALID_SORT_VALUES, sort)
+
+    if period is not None and period not in VALID_PERIOD_VALUES:
+        handle_validation_error("period", VALID_PERIOD_VALUES, period)
+
+    if limit < 1 or limit > 100:
+        typer.echo("Error: --limit must be between 1 and 100", err=True)
+        raise typer.Exit(code=2)
 
 
 async def _browse_frontpage_async(
@@ -36,21 +47,20 @@ async def _browse_frontpage_async(
         )
 
         for post in posts:
-            print(f"[{post.score}] {post.title}")
-            print(f"  ID: {post.id}")
-            print(f"  r/{post.subreddit} by {post.author}")
-            print(f"  {post.num_comments} comments")
-            print()
+            typer.echo(f"[{post.score}] {post.title}")
+            typer.echo(f"  ID: {post.id}")
+            typer.echo(f"  r/{post.subreddit} by {post.author}")
+            typer.echo(f"  {post.num_comments} comments")
+            typer.echo()
 
         if after_cursor or before_cursor:
-            print("---")
+            typer.echo("---")
             if after_cursor:
-                print(f"After: {after_cursor}")
+                typer.echo(f"After: {after_cursor}")
             if before_cursor:
-                print(f"Before: {before_cursor}")
+                typer.echo(f"Before: {before_cursor}")
 
 
-@app.command(name="frontpage")
 def frontpage(
     sort: str = "hot",
     limit: int = 25,
@@ -68,12 +78,12 @@ def frontpage(
         before: Pagination cursor
     """
     try:
+        _validate_sort_period(sort, period, limit)
         asyncio.run(_browse_frontpage_async(sort, limit, period, after, before))
     except Exception as e:
-        _handle_api_error(e)
+        handle_api_error(e)
 
 
-@app.command(name="home")
 def home(
     sort: str = "hot",
     limit: int = 25,
@@ -91,12 +101,12 @@ def home(
         before: Pagination cursor
     """
     try:
+        _validate_sort_period(sort, period, limit)
         asyncio.run(_browse_frontpage_async(sort, limit, period, after, before))
     except Exception as e:
-        _handle_api_error(e)
+        handle_api_error(e)
 
 
-@app.command(name="best")
 def best(
     limit: int = 25,
     period: str = "all",
@@ -112,6 +122,7 @@ def best(
         before: Pagination cursor
     """
     try:
+        _validate_sort_period("top", period, limit)
         asyncio.run(_browse_frontpage_async("top", limit, period, after, before))
     except Exception as e:
-        _handle_api_error(e)
+        handle_api_error(e)
