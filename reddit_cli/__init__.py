@@ -92,12 +92,6 @@ For more information: https://github.com/AliiiBenn/reddit-cli
 """
 
 
-# Check for help flags before Typer processes them
-if len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] in ("--help", "-h", "help")):
-    if "--help" in sys.argv or "-h" in sys.argv or (len(sys.argv) == 1):
-        show_help()
-        raise SystemExit(0)
-
 app = typer.Typer()
 app.command()(browse)
 app.command()(post)
@@ -121,6 +115,13 @@ def ping() -> None:
 def help_cmd() -> None:
     """Show this help message with all available commands."""
     print(HELP_TEXT)
+
+
+@app.callback(invoke_without_command=True)
+def main_callback(ctx: typer.Context) -> None:
+    if ctx.invoked_subcommand is None:
+        show_help()
+        raise typer.Exit()
 
 
 if __name__ == "__main__":
