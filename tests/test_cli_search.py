@@ -7,49 +7,6 @@ from typer.testing import CliRunner
 from reddit_cli import app
 
 
-@pytest.fixture
-def sample_search_response() -> dict:
-    """Sample search results response."""
-    return {
-        "data": {
-            "children": [
-                {
-                    "kind": "t3",
-                    "data": {
-                        "id": "search1",
-                        "title": "How to learn Python in 2024",
-                        "score": 500,
-                        "num_comments": 100,
-                        "author": "python_learner",
-                        "subreddit": "learnprogramming",
-                        "url": "https://example.com/python-guide",
-                        "permalink": "/r/learnprogramming/comments/search1/python_guide/",
-                        "selftext": "I'm looking for resources to learn Python",
-                        "created_utc": 1704067200,
-                    },
-                },
-                {
-                    "kind": "t3",
-                    "data": {
-                        "id": "search2",
-                        "title": "Best Python frameworks comparison",
-                        "score": 300,
-                        "num_comments": 75,
-                        "author": "framework_dev",
-                        "subreddit": "python",
-                        "url": "https://example.com/frameworks",
-                        "permalink": "/r/python/comments/search2/frameworks/",
-                        "selftext": "Django vs Flask vs FastAPI",
-                        "created_utc": 1704067200,
-                    },
-                },
-            ],
-            "after": "t3_after2",
-            "before": None,
-        }
-    }
-
-
 class TestSearch:
     """Test suite for global search command."""
 
@@ -88,35 +45,43 @@ class TestSearch:
         result = runner.invoke(app, ["search"])
         assert result.exit_code != 0
 
-    def test_search_with_sort(self, runner: CliRunner, mock_reddit_base, sample_search_response):
-        """search should accept --sort option."""
+    @pytest.mark.parametrize("sort_option", ["relevance", "hot", "top", "new", "comments"])
+    def test_search_with_sort_option(
+        self, runner: CliRunner, mock_reddit_base, sample_search_response, sort_option
+    ):
+        """search should accept various --sort options."""
         mock_reddit_base.get("/search.json").mock(
             return_value=httpx.Response(200, json=sample_search_response)
         )
-        result = runner.invoke(app, ["search", "python", "--sort", "new"])
+        result = runner.invoke(app, ["search", "python", "--sort", sort_option])
         assert result.exit_code == 0
 
-    def test_search_with_limit(self, runner: CliRunner, mock_reddit_base, sample_search_response):
-        """search should accept --limit option."""
+    @pytest.mark.parametrize("limit_value", [5, 10, 25, 50])
+    def test_search_with_limit_option(
+        self, runner: CliRunner, mock_reddit_base, sample_search_response, limit_value
+    ):
+        """search should accept various --limit options."""
         mock_reddit_base.get("/search.json").mock(
             return_value=httpx.Response(200, json=sample_search_response)
         )
-        result = runner.invoke(app, ["search", "python", "--limit", "10"])
+        result = runner.invoke(app, ["search", "python", "--limit", str(limit_value)])
         assert result.exit_code == 0
 
-    def test_search_with_period(self, runner: CliRunner, mock_reddit_base, sample_search_response):
-        """search should accept --period option."""
+    @pytest.mark.parametrize("period_option", ["hour", "day", "week", "month", "year", "all"])
+    def test_search_with_period_option(
+        self, runner: CliRunner, mock_reddit_base, sample_search_response, period_option
+    ):
+        """search should accept various --period options."""
         mock_reddit_base.get("/search.json").mock(
             return_value=httpx.Response(200, json=sample_search_response)
         )
-        result = runner.invoke(app, ["search", "python", "--period", "week"])
+        result = runner.invoke(app, ["search", "python", "--period", period_option])
         assert result.exit_code == 0
 
-    def test_search_no_results(self, runner: CliRunner, mock_reddit_base):
+    def test_search_no_results(self, runner: CliRunner, mock_reddit_base, empty_posts_response):
         """search should handle no results gracefully."""
-        empty_response = {"data": {"children": [], "after": None, "before": None}}
         mock_reddit_base.get("/search.json").mock(
-            return_value=httpx.Response(200, json=empty_response)
+            return_value=httpx.Response(200, json=empty_posts_response)
         )
         result = runner.invoke(app, ["search", "xyzzynonexistentquery12345"])
         assert result.exit_code == 0

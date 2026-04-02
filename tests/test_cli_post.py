@@ -160,6 +160,16 @@ class TestPostInfo:
         result = runner.invoke(app, ["post", "abc123", "--info"])
         assert result.exit_code == 0
 
+    def test_info_output_contains_title(
+        self, runner: CliRunner, mock_reddit_base, sample_post_response
+    ):
+        """post abc123 --info output should contain post title."""
+        mock_reddit_base.get("/by_id/t3_abc123.json").mock(
+            return_value=httpx.Response(200, json=sample_post_response)
+        )
+        result = runner.invoke(app, ["post", "abc123", "--info"])
+        assert "Amazing New Feature Released" in result.output
+
 
 class TestPostDuplicates:
     """Test suite for post --duplicates command."""

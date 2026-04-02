@@ -138,6 +138,7 @@ class TestSubreddit:
         )
         result = runner.invoke(app, ["subreddit", "python", "--moderators"])
         assert result.exit_code == 0
+        assert "Moderator" in result.output
 
     def test_subreddit_missing_name(self, runner: CliRunner):
         """subreddit should fail without name."""
@@ -151,6 +152,20 @@ class TestSubreddit:
         )
         result = runner.invoke(app, ["subreddit", "r/python"])
         assert result.exit_code == 0
+
+    def test_subreddit_moderators_privacy_error(
+        self, runner: CliRunner, mock_reddit_base, sample_subreddit_response, error_response_403
+    ):
+        """subreddit --moderators should handle privacy error (403) gracefully."""
+        mock_reddit_base.get("/r/python/about.json").mock(
+            return_value=httpx.Response(200, json=sample_subreddit_response)
+        )
+        mock_reddit_base.get("/r/python/about/moderators.json").mock(
+            return_value=error_response_403
+        )
+        result = runner.invoke(app, ["subreddit", "python", "--moderators"])
+        assert result.exit_code == 0
+        assert "not publicly available" in result.output.lower()
 
 
 class TestSubreddits:
@@ -197,6 +212,16 @@ class TestSubreddits:
         result = runner.invoke(app, ["subreddits", "--sort", "gilded"])
         assert result.exit_code == 0
 
+    def test_subreddits_empty_results(
+        self, runner: CliRunner, mock_reddit_base, empty_posts_response
+    ):
+        """subreddits should handle empty results gracefully."""
+        mock_reddit_base.get(url="/subreddits.json", params={"limit": 25, "sort": "subscribers"}).mock(
+            return_value=httpx.Response(200, json=empty_posts_response)
+        )
+        result = runner.invoke(app, ["subreddits"])
+        assert result.exit_code == 0
+
 
 class TestSubredditsSearch:
     """Test suite for subreddits --search command."""
@@ -225,6 +250,15 @@ class TestSubredditsSearch:
         """subreddits --search should fail without query."""
         result = runner.invoke(app, ["subreddits", "--search"])
         assert result.exit_code != 0
+
+    def test_search_no_results(self, runner: CliRunner, mock_reddit_base, empty_posts_response):
+        """subreddits --search should handle empty results."""
+        mock_reddit_base.get(url="/subreddits/search.json", params={"q": "nonexistent123xyz", "limit": 25}).mock(
+            return_value=httpx.Response(200, json=empty_posts_response)
+        )
+        result = runner.invoke(app, ["subreddits", "--search", "nonexistent123xyz"])
+        assert result.exit_code == 0
+        assert "No subreddits found" in result.output
 
 
 class TestSubredditsNew:
@@ -264,6 +298,16 @@ class TestSubredditsGold:
         result = runner.invoke(app, ["subreddits", "--gold"])
         assert result.exit_code == 0
 
+    def test_gold_output_contains_subreddits(
+        self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
+    ):
+        """subreddits --gold output should contain subreddit names."""
+        mock_reddit_base.get(url="/subreddits/gold.json", params={"limit": 25}).mock(
+            return_value=httpx.Response(200, json=sample_subreddits_list_response)
+        )
+        result = runner.invoke(app, ["subreddits", "--gold"])
+        assert "python" in result.output
+
 
 class TestSubredditsDefault:
     """Test suite for subreddits --default command."""
@@ -277,3 +321,13 @@ class TestSubredditsDefault:
         )
         result = runner.invoke(app, ["subreddits", "--default"])
         assert result.exit_code == 0
+
+    def test_default_output_contains_subreddits(
+        self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
+    ):
+        """subreddits --default output should contain subreddit names."""
+        mock_reddit_base.get(url="/subreddits/default.json", params={"limit": 25}).mock(
+            return_value=httpx.Response(200, json=sample_subreddits_list_response)
+        )
+        result = runner.invoke(app, ["subreddits", "--default"])
+        assert "python" in result.output
