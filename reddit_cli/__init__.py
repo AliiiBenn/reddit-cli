@@ -1,4 +1,3 @@
-import sys
 import typer
 
 from reddit_cli.commands.browse import browse
