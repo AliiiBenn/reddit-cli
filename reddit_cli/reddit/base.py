@@ -58,13 +58,20 @@ class RedditClient:
                         backoff *= 2
                         continue
                     else:
-                        response.raise_for_status()
+                        last_exception = httpx.HTTPStatusError(
+                            "429 Rate Limited",
+                            request=response.request,
+                            response=response,
+                        )
+                        raise last_exception
 
                 if response.status_code >= 500:
                     if attempt < self.MAX_RETRIES - 1:
                         await asyncio.sleep(backoff)
                         backoff *= 2
                         continue
+                    else:
+                        response.raise_for_status()
 
                 response.raise_for_status()
                 return response.json()
