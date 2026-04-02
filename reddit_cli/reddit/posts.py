@@ -95,27 +95,22 @@ class PostsClient:
 
         data = await self._client.get(f"/api/duplicates/t3_{post_id}.json")
 
-        # Handle list response format (Reddit API returns list for duplicates)
+        # Reddit API returns a list: [original_posts_data, duplicates_data]
         if isinstance(data, list) and len(data) >= 2:
-            original = [Post(**p["data"]) for p in data[0].get("data", {}).get("children", [])]
-            duplicates = [Post(**p["data"]) for p in data[1].get("data", {}).get("children", [])]
-            if original:
-                return original[0], duplicates
-            return Post(id="", title="", author="", subreddit="", score=0, num_comments=0, permalink="", url="", created_utc=0.0), []
+            original_data = data[0].get("data", {}).get("children", [])
+            duplicates_data = data[1].get("data", {}).get("children", [])
 
-        # Handle dict response format
-        children = data.get("", data.get("data", {}))
+            if original_data:
+                original = Post(**original_data[0]["data"])
+                duplicates = [Post(**p["data"]) for p in duplicates_data]
+                return original, duplicates
 
-        if isinstance(children, list) and len(children) >= 2:
-            original = [Post(**p["data"]) for p in children[0].get("data", {}).get("children", [])]
-            duplicates = [Post(**p["data"]) for p in children[1].get("data", {}).get("children", [])]
-            if original:
-                return original[0], duplicates
-
-        # Alternative response format
+        # Fallback: try to extract from data dict directly
         posts = data.get("data", {}).get("children", [])
         if posts:
-            return posts[0], []
+            return Post(**posts[0]["data"]), []
+
+        # No duplicates found - return empty
         return Post(id="", title="", author="", subreddit="", score=0, num_comments=0, permalink="", url="", created_utc=0.0), []
 
     async def search_posts(
