@@ -1,4 +1,3 @@
-import asyncio
 import typer
 
 from reddit_cli.commands.browse import browse
@@ -6,9 +5,8 @@ from reddit_cli.commands.comments import comment, comments
 from reddit_cli.commands.navigation import best, frontpage, home
 from reddit_cli.commands.post import post, view
 from reddit_cli.commands.subreddit import subreddit_app, subreddits_app
-from reddit_cli.reddit import RedditClient, PostsClient
 
-app = typer.Typer(invoke_without_command=True, add_help_option=False)
+app = typer.Typer(add_help_option=False)
 app.add_typer(subreddit_app, name="subreddit")
 app.add_typer(subreddits_app, name="subreddits")
 app.command()(browse)
@@ -19,30 +17,6 @@ app.command()(comment)
 app.command()(frontpage)
 app.command()(home)
 app.command()(best)
-
-
-@app.callback()
-def main() -> None:
-    """Browse the frontpage by default."""
-    import sys
-    # Don't run frontpage if help was requested
-    if len(sys.argv) > 1 and sys.argv[1] in ("help", "--help", "-h"):
-        return
-    asyncio.run(_frontpage_default())
-
-
-async def _frontpage_default() -> None:
-    """Default: show frontpage."""
-    async with RedditClient() as client:
-        posts_client = PostsClient(client)
-        posts, after_cursor, before_cursor = await posts_client.list_posts("reddit", "hot", 25, None)
-
-        for post in posts:
-            print(f"[{post.score}] {post.title}")
-            print(f"  ID: {post.id}")
-            print(f"  r/{post.subreddit} by {post.author}")
-            print(f"  {post.num_comments} comments")
-            print()
 
 
 @app.command()
@@ -61,7 +35,6 @@ USAGE
     reddit <command> [options]
 
 NAVIGATION
-    reddit                   Browse the frontpage (hot posts)
     reddit frontpage         Browse r/reddit hot posts
     reddit home              Alias for frontpage
     reddit best              Top posts of all time
@@ -100,7 +73,7 @@ SUBREDDITS
         --include-nsfw            Include NSFW subreddits
 
 EXAMPLES
-    reddit
+    reddit frontpage
     reddit browse python --sort hot --limit 10
     reddit view t3_abc123
     reddit comments t3_abc123 --sort top --depth 3

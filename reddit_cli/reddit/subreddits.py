@@ -75,12 +75,11 @@ class SubredditsClient:
             limit: Number of results (max 25)
             include_over_18: Include NSFW subreddits
         """
-        params: dict[str, int | str | bool] = {
-            "query": query,
+        params: dict[str, int | str] = {
+            "q": query,
             "limit": min(limit, 25),
-            "include_over_18": include_over_18,
         }
 
-        data = await self._client.get("/api/subreddit_autocomplete_v2", params=params)
-        subreddits = data.get("subreddits", [])
-        return [Subreddit(**sub) for sub in subreddits]
+        data = await self._client.get("/subreddits/search.json", params=params)
+        subreddits = data.get("data", {}).get("children", [])
+        return [Subreddit(**sub["data"]) for sub in subreddits]
