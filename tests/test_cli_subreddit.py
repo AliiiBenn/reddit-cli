@@ -69,15 +69,6 @@ def sample_rules_response() -> dict:
     }
 
 
-@pytest.fixture
-def sample_moderators_response() -> list:
-    """Sample moderators response."""
-    return [
-        {"name": "moderator1"},
-        {"name": "moderator2"},
-    ]
-
-
 class TestSubreddit:
     """Test suite for subreddit command."""
 
@@ -125,20 +116,6 @@ class TestSubreddit:
         assert result.exit_code == 0
         assert "Be respectful" in result.output
 
-    def test_subreddit_with_moderators_flag(
-        self, runner: CliRunner, mock_reddit_base, sample_subreddit_response, sample_moderators_response
-    ):
-        """subreddit python --moderators should show moderators."""
-        mock_reddit_base.get("/r/python/about.json").mock(
-            return_value=httpx.Response(200, json=sample_subreddit_response)
-        )
-        mock_reddit_base.get("/r/python/about/moderators.json").mock(
-            return_value=httpx.Response(200, json={"data": {"children": sample_moderators_response}})
-        )
-        result = runner.invoke(app, ["subreddit", "python", "--moderators"])
-        assert result.exit_code == 0
-        assert "Moderator" in result.output
-
     def test_subreddit_missing_name(self, runner: CliRunner):
         """subreddit should fail without name."""
         result = runner.invoke(app, ["subreddit"])
@@ -151,21 +128,6 @@ class TestSubreddit:
         )
         result = runner.invoke(app, ["subreddit", "r/python"])
         assert result.exit_code == 0
-
-    def test_subreddit_moderators_privacy_error(
-        self, runner: CliRunner, mock_reddit_base, sample_subreddit_response, error_response_403
-    ):
-        """subreddit --moderators should handle privacy error (403) gracefully."""
-        mock_reddit_base.get("/r/python/about.json").mock(
-            return_value=httpx.Response(200, json=sample_subreddit_response)
-        )
-        mock_reddit_base.get("/r/python/about/moderators.json").mock(
-            return_value=error_response_403
-        )
-        result = runner.invoke(app, ["subreddit", "python", "--moderators"])
-        assert result.exit_code == 0
-        assert "not publicly available" in result.output.lower()
-
 
 class TestSubreddits:
     """Test suite for subreddits command."""

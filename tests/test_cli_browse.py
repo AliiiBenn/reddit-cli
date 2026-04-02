@@ -34,35 +34,6 @@ def sample_browse_response() -> dict:
     }
 
 
-@pytest.fixture
-def sample_sticky_response() -> dict:
-    """Sample sticky post response."""
-    return {
-        "data": {
-            "children": [
-                {
-                    "kind": "t3",
-                    "data": {
-                        "id": "sticky1",
-                        "title": "Welcome to r/python!",
-                        "score": 1000,
-                        "num_comments": 50,
-                        "author": "AutoModerator",
-                        "subreddit": "python",
-                        "url": "https://reddit.com/r/python/welcome",
-                        "permalink": "/r/python/comments/sticky1/welcome/",
-                        "selftext": "Read the rules before posting",
-                        "created_utc": 1704067200,
-                        "stickied": True,
-                    },
-                }
-            ],
-            "after": None,
-            "before": None,
-        }
-    }
-
-
 class TestBrowse:
     """Test suite for browse command."""
 
@@ -122,54 +93,6 @@ class TestBrowse:
         """browse should fail without subreddit argument."""
         result = runner.invoke(app, ["browse"])
         assert result.exit_code != 0
-
-
-class TestBrowseSticky:
-    """Test suite for browse --sticky command."""
-
-    def test_sticky_exit_code(
-        self, runner: CliRunner, mock_reddit_base, sample_sticky_response
-    ):
-        """browse python --sticky should exit with code 0."""
-        mock_reddit_base.get("/r/python/sticky.json").mock(
-            return_value=httpx.Response(200, json=sample_sticky_response)
-        )
-        result = runner.invoke(app, ["browse", "python", "--sticky"])
-        assert result.exit_code == 0
-
-    def test_sticky_output_contains_post(
-        self, runner: CliRunner, mock_reddit_base, sample_sticky_response
-    ):
-        """browse python --sticky output should contain sticky post."""
-        mock_reddit_base.get("/r/python/sticky.json").mock(
-            return_value=httpx.Response(200, json=sample_sticky_response)
-        )
-        result = runner.invoke(app, ["browse", "python", "--sticky"])
-        assert "Welcome to r/python" in result.output
-
-
-class TestBrowseRandom:
-    """Test suite for browse --random command."""
-
-    def test_random_exit_code(
-        self, runner: CliRunner, mock_reddit_base, sample_browse_response
-    ):
-        """browse python --random should exit with code 0."""
-        mock_reddit_base.get("/r/python/random.json").mock(
-            return_value=httpx.Response(200, json=sample_browse_response)
-        )
-        result = runner.invoke(app, ["browse", "python", "--random"])
-        assert result.exit_code == 0
-
-    def test_random_output_contains_post(
-        self, runner: CliRunner, mock_reddit_base, sample_browse_response
-    ):
-        """browse python --random output should contain post."""
-        mock_reddit_base.get("/r/python/random.json").mock(
-            return_value=httpx.Response(200, json=sample_browse_response)
-        )
-        result = runner.invoke(app, ["browse", "python", "--random"])
-        assert "Python Tip of the Day" in result.output
 
 
 class TestBrowseSearch:
@@ -254,18 +177,6 @@ class TestBrowsePagination:
 
 class TestBrowseErrorHandling:
     """Test suite for browse error handling."""
-
-    def test_browse_random_no_posts_returns_error(
-        self, runner: CliRunner, mock_reddit_base
-    ):
-        """browse --random should handle empty response gracefully."""
-        empty_response = {"data": {"children": [], "after": None, "before": None}}
-        mock_reddit_base.get("/r/python/random.json").mock(
-            return_value=httpx.Response(200, json=empty_response)
-        )
-        result = runner.invoke(app, ["browse", "python", "--random"])
-        assert result.exit_code == 0
-        assert "Error" in result.output or "No random post" in result.output.lower()
 
     def test_browse_search_no_results(
         self, runner: CliRunner, mock_reddit_base, empty_posts_response

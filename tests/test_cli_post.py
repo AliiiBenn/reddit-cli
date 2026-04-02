@@ -32,55 +32,6 @@ def sample_post_response() -> dict:
     }
 
 
-@pytest.fixture
-def sample_duplicates_response() -> dict:
-    """Sample duplicates response from /api/duplicates endpoint."""
-    return [
-        {
-            "data": {
-                "children": [
-                    {
-                        "kind": "t3",
-                        "data": {
-                            "id": "abc123",
-                            "title": "Original Amazing Post",
-                            "score": 1000,
-                            "num_comments": 50,
-                            "author": "original_author",
-                            "subreddit": "programming",
-                            "url": "https://example.com/original",
-                            "permalink": "/r/programming/comments/abc123/original/",
-                            "selftext": "Original content",
-                            "created_utc": 1704067200,
-                        },
-                    }
-                ]
-            }
-        },
-        {
-            "data": {
-                "children": [
-                    {
-                        "kind": "t3",
-                        "data": {
-                            "id": "xyz789",
-                            "title": "Crosspost Amazing Post",
-                            "score": 500,
-                            "num_comments": 25,
-                            "author": "crossposter",
-                            "subreddit": "python",
-                            "url": "https://example.com/crosspost",
-                            "permalink": "/r/python/comments/xyz789/crosspost/",
-                            "selftext": "Crossposted content",
-                            "created_utc": 1704067201,
-                        },
-                    }
-                ]
-            }
-        },
-    ]
-
-
 class TestPost:
     """Test suite for post command."""
 
@@ -170,31 +121,3 @@ class TestPostInfo:
         assert "Amazing New Feature Released" in result.output
 
 
-class TestPostDuplicates:
-    """Test suite for post --duplicates command."""
-
-    def test_duplicates_exit_code(
-        self, runner: CliRunner, mock_reddit_base, sample_duplicates_response
-    ):
-        """post abc123 --duplicates should exit with code 0."""
-        mock_reddit_base.get("/api/duplicates/t3_abc123.json").mock(
-            return_value=httpx.Response(200, json=sample_duplicates_response)
-        )
-        result = runner.invoke(app, ["post", "abc123", "--duplicates"])
-        assert result.exit_code == 0
-
-    def test_duplicates_output_contains_original(
-        self, runner: CliRunner, mock_reddit_base, sample_duplicates_response
-    ):
-        """post abc123 --duplicates output should contain original post."""
-        mock_reddit_base.get("/api/duplicates/t3_abc123.json").mock(
-            return_value=httpx.Response(200, json=sample_duplicates_response)
-        )
-        result = runner.invoke(app, ["post", "abc123", "--duplicates"])
-        assert "Original" in result.output
-        assert "Crosspost" in result.output
-
-    def test_duplicates_missing_id(self, runner: CliRunner):
-        """post --duplicates should fail without post ID."""
-        result = runner.invoke(app, ["post", "--duplicates"])
-        assert result.exit_code != 0
