@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://pypi.org/project/better-reddit-cli/",
+      "permanent": true
+    }
+  ]
+}
