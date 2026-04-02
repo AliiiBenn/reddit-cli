@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import httpx
 import typer
 
