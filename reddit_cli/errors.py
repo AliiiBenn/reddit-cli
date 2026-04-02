@@ -1,5 +1,4 @@
 """Shared error handling utilities for Reddit CLI."""
-import sys
 import httpx
 import typer
 
