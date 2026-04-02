@@ -52,10 +52,10 @@ reddit subreddit python --rules
 ## Additional Resources
 
 For detailed command usage:
-- [navigation.md](reddit-cli/navigation.md) - frontpage, home, best
-- [browse.md](reddit-cli/browse.md) - browse command
-- [search.md](reddit-cli/search.md) - global search
-- [post.md](reddit-cli/post.md) - view posts
-- [comments.md](reddit-cli/comments.md) - view comments
-- [subreddit.md](reddit-cli/subreddit.md) - subreddit info and listing
-- [error-handling.md](reddit-cli/error-handling.md) - troubleshooting
+- [navigation.md](features/navigation.md) - frontpage, home, best
+- [browse.md](features/browse.md) - browse command
+- [search.md](features/search.md) - global search
+- [post.md](features/post.md) - view posts
+- [comments.md](features/comments.md) - view comments
+- [subreddit.md](features/subreddit.md) - subreddit info and listing
+- [error-handling.md](features/error-handling.md) - troubleshooting
