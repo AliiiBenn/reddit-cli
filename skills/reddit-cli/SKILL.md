@@ -1,3 +1,4 @@
+---
 name: reddit-cli
 description: A command-line tool for browsing Reddit without an API key. Use when asking about Reddit CLI commands, browsing subreddits, searching posts, viewing comments, or getting subreddit info. No authentication required.
 disable-model-invocation: false
