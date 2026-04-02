@@ -4,7 +4,8 @@ import typer
 
 from reddit_cli.reddit import RedditClient, SubredditsClient
 
-app = typer.Typer()
+subreddit_app = typer.Typer()
+subreddits_app = typer.Typer()
 
 
 async def _subreddit_async(
@@ -42,7 +43,7 @@ async def _subreddit_async(
             print(f"Description: {desc[:300]}{'...' if len(desc) > 300 else ''}")
 
 
-@app.command()
+@subreddit_app.command()
 def subreddit(
     name: str,
     rules: bool = False,
@@ -58,7 +59,23 @@ def subreddit(
     asyncio.run(_subreddit_async(name, rules, moderators))
 
 
-@app.command(name="subreddits")
+async def _list_subreddits_async(
+    sort: str = "subscribers",
+    limit: int = 25,
+) -> None:
+    """Async implementation of subreddits listing."""
+    async with RedditClient() as client:
+        subreddits_client = SubredditsClient(client)
+        subreddits = await subreddits_client.list_subreddits(sort, limit)
+
+        for sub in subreddits:
+            print(f"r/{sub.display_name}")
+            print(f"  {sub.title}")
+            print(f"  Subscribers: {sub.subscribers:,}")
+            print()
+
+
+@subreddits_app.command(name="subreddits")
 def subreddits(
     sort: str = "subscribers",
     limit: int = 25,
@@ -72,17 +89,41 @@ def subreddits(
     asyncio.run(_list_subreddits_async(sort, limit))
 
 
-async def _list_subreddits_async(
-    sort: str = "subscribers",
-    limit: int = 25,
+@subreddits_app.command(name="search")
+def search(
+    query: str,
+    limit: int = 10,
+    include_nsfw: bool = False,
 ) -> None:
-    """Async implementation of subreddits listing."""
+    """Search subreddits by keyword.
+
+    Args:
+        query: Search query
+        limit: Number of results (max 25)
+        include_nsfw: Include NSFW subreddits
+    """
+    asyncio.run(_search_async(query, limit, include_nsfw))
+
+
+async def _search_async(
+    query: str,
+    limit: int = 10,
+    include_nsfw: bool = False,
+) -> None:
+    """Async implementation of subreddit search."""
     async with RedditClient() as client:
         subreddits_client = SubredditsClient(client)
-        subreddits = await subreddits_client.list_subreddits(sort, limit)
+        subreddits = await subreddits_client.search_subreddits(
+            query, limit, include_nsfw
+        )
+
+        if not subreddits:
+            print(f"No subreddits found matching '{query}'")
+            return
 
         for sub in subreddits:
-            print(f"r/{sub.display_name}")
+            nsfw_tag = " [NSFW]" if getattr(sub, "over_18", False) else ""
+            print(f"r/{sub.display_name}{nsfw_tag}")
             print(f"  {sub.title}")
             print(f"  Subscribers: {sub.subscribers:,}")
             print()

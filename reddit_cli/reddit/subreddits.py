@@ -61,3 +61,26 @@ class SubredditsClient:
         data = await self._client.get(path, params=params)
         subreddits = data.get("data", {}).get("children", [])
         return [Subreddit(**sub["data"]) for sub in subreddits]
+
+    async def search_subreddits(
+        self,
+        query: str,
+        limit: int = 10,
+        include_over_18: bool = False,
+    ) -> list[Subreddit]:
+        """Search subreddits by keyword.
+
+        Args:
+            query: Search query
+            limit: Number of results (max 25)
+            include_over_18: Include NSFW subreddits
+        """
+        params: dict[str, int | str | bool] = {
+            "query": query,
+            "limit": min(limit, 25),
+            "include_over_18": include_over_18,
+        }
+
+        data = await self._client.get("/api/subreddit_autocomplete_v2", params=params)
+        subreddits = data.get("subreddits", [])
+        return [Subreddit(**sub) for sub in subreddits]

@@ -5,17 +5,17 @@ from reddit_cli.commands.browse import browse
 from reddit_cli.commands.comments import comment, comments
 from reddit_cli.commands.navigation import best, frontpage, home
 from reddit_cli.commands.post import post, view
-from reddit_cli.commands.subreddit import subreddit, subreddits
+from reddit_cli.commands.subreddit import subreddit_app, subreddits_app
 from reddit_cli.reddit import RedditClient, PostsClient
 
 app = typer.Typer(invoke_without_command=True, add_help_option=False)
+app.add_typer(subreddit_app, name="subreddit")
+app.add_typer(subreddits_app, name="subreddits")
 app.command()(browse)
 app.command()(post)
 app.command()(view)
 app.command()(comments)
 app.command()(comment)
-app.command()(subreddit)
-app.command()(subreddits)
 app.command()(frontpage)
 app.command()(home)
 app.command()(best)
@@ -95,6 +95,10 @@ SUBREDDITS
         --sort subscribers|active
         --limit <n>               Number of results
 
+    reddit subreddits search <query>  Search subreddits by keyword
+        --limit <n>               Number of results (max 25)
+        --include-nsfw            Include NSFW subreddits
+
 EXAMPLES
     reddit
     reddit browse python --sort hot --limit 10
@@ -102,6 +106,7 @@ EXAMPLES
     reddit comments t3_abc123 --sort top --depth 3
     reddit subreddit python --rules
     reddit subreddits --sort subscribers
+    reddit subreddits search python --limit 10
 
 For more information: https://github.com/AliiiBenn/reddit-cli
 """)
