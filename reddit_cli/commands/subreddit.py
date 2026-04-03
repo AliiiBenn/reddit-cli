@@ -133,16 +133,12 @@ def subreddit(
 # Subreddits Group - Typer subcommand structure
 # =============================================================================
 
-subreddits_app = typer.Typer(invoke_without_command=True)
+subreddits_app = typer.Typer()
 
 
 @subreddits_app.callback()
 def subreddits_callback(
     ctx: typer.Context,
-    search: str | None = typer.Option(None, "--search", help="Search subreddits by keyword"),
-    new: bool = typer.Option(False, "--new", help="List newly created subreddits"),
-    gold: bool = typer.Option(False, "--gold", help="List Reddit Gold subreddits"),
-    default: bool = typer.Option(False, "--default", help="List default subreddits"),
     sort: str = typer.Option("subscribers", "--sort", help="Sort type (subscribers, active)"),
     limit: int = typer.Option(25, "--limit", help="Number of results"),
     format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
@@ -150,26 +146,15 @@ def subreddits_callback(
 ) -> None:
     """List popular subreddits.
 
-    This command supports both the new subcommand syntax and legacy flat options:
+    Subcommands:
     - reddit subreddits popular [--sort subscribers|active] [--limit N]
     - reddit subreddits search <query> [--limit N]
     - reddit subreddits new [--limit N]
     - reddit subreddits gold [--limit N]
     - reddit subreddits default [--limit N]
 
-    Legacy syntax (still supported):
-    - reddit subreddits [--sort subscribers|active] [--limit N]
-    - reddit subreddits --search <query> [--limit N]
-    - reddit subreddits --new [--limit N]
-    - reddit subreddits --gold [--limit N]
-    - reddit subreddits --default [--limit N]
-
     Args:
         ctx: Typer context
-        search: Search subreddits by keyword (legacy option)
-        new: List newly created subreddits (legacy option)
-        gold: List Reddit Gold subreddits (legacy option)
-        default: List default subreddits (legacy option)
         sort: Sort type
         limit: Number of results
         format: Output format
@@ -182,43 +167,6 @@ def subreddits_callback(
         "format": format,
         "output": output,
     }
-
-    # Handle legacy flat-options syntax when no subcommand is given
-    # This allows old tests to pass while supporting the new subcommand structure
-    # When a subcommand is invoked, we just store options and return
-    # The subcommand will handle the actual logic
-    if ctx.invoked_subcommand is not None:
-        # A subcommand was invoked - it will handle the logic
-        return
-
-    # No subcommand invoked - handle legacy options or default to popular
-    try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
-
-        if search:
-            asyncio.run(_search_async(search, limit, format, output))
-        elif new:
-            asyncio.run(_new_async(limit, format, output))
-        elif gold:
-            asyncio.run(_gold_async(limit, format, output))
-        elif default:
-            asyncio.run(_default_async(limit, format, output))
-        else:
-            # Default: list popular subreddits
-            _validate_list_params(sort, limit)
-            subreddits_list = asyncio.run(_list_subreddits_async(sort, limit))
-            if format == "display":
-                for sub in subreddits_list:
-                    typer.echo(f"r/{sub.display_name}")
-                    typer.echo(f"  {sub.title}")
-                    typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                    typer.echo()
-            else:
-                _write_subreddits_output(subreddits_list, format, output)
-    except Exception as e:
-        handle_api_error(e)
-        raise typer.Exit(code=1)
 
 
 async def _list_subreddits_async(
@@ -488,53 +436,3 @@ async def _rules_async(name: str) -> None:
         for i, rule in enumerate(rules_data.get("rules", []), 1):
             typer.echo(f"  {i}. {rule.get('short_name', 'N/A')}")
             typer.echo(f"     {rule.get('description', 'N/A')[:100]}...")
-
-
-# For backward compatibility - subreddits command with flat options
-def subreddits(
-    search: str | None = None,
-    new: bool = False,
-    gold: bool = False,
-    default: bool = False,
-    sort: str = "subscribers",
-    limit: int = 25,
-    format: str = "display",
-    output: str | None = None,
-) -> None:
-    """List popular subreddits (legacy flat-options command).
-
-    Args:
-        search: Search subreddits by keyword
-        new: List newly created subreddits
-        gold: List Reddit Gold subreddits
-        default: List default subreddits
-        sort: Sort type (subscribers, active)
-        limit: Number of subreddits to return
-        format: Output format (display, sql, csv)
-        output: Output file path
-    """
-    try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
-
-        if search:
-            asyncio.run(_search_async(search, limit, format, output))
-        elif new:
-            asyncio.run(_new_async(limit, format, output))
-        elif gold:
-            asyncio.run(_gold_async(limit, format, output))
-        elif default:
-            asyncio.run(_default_async(limit, format, output))
-        else:
-            _validate_list_params(sort, limit)
-            subreddits_list = asyncio.run(_list_subreddits_async(sort, limit))
-            if format == "display":
-                for sub in subreddits_list:
-                    typer.echo(f"r/{sub.display_name}")
-                    typer.echo(f"  {sub.title}")
-                    typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                    typer.echo()
-            else:
-                _write_subreddits_output(subreddits_list, format, output)
-    except Exception as e:
-        handle_api_error(e)
