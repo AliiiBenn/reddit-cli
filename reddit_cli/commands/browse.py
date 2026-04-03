@@ -160,7 +160,7 @@ def browse(
     try:
         _validate_sort_period(sort, period, limit, VALID_SORT_VALUES, VALID_PERIOD_VALUES)
 
-        _validate_format(format)
+        _validate_format(format, VALID_FORMAT_VALUES)
 
         # Validate output path if provided
         output_path = None

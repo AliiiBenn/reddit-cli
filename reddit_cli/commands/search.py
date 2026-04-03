@@ -132,7 +132,7 @@ def search(
     try:
         _validate_sort_period(sort, period, limit, VALID_SEARCH_SORT_VALUES, VALID_SEARCH_PERIOD_VALUES)
 
-        _validate_format(format)
+        _validate_format(format, VALID_FORMAT_VALUES)
 
         # Validate output path if provided
         output_path = None
