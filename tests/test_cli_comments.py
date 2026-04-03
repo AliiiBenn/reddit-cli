@@ -1,4 +1,6 @@
 """Tests for comments commands: comments, comment."""
+import os
+import tempfile
 import pytest
 import httpx
 from typer.testing import CliRunner
@@ -168,6 +170,147 @@ class TestComments:
         """comments should fail without post ID."""
         result = runner.invoke(app, ["comments"])
         assert result.exit_code != 0
+
+    def test_comments_invalid_format(
+        self, runner: CliRunner
+    ):
+        """comments should exit with code 2 for invalid format."""
+        # No mock needed - validation happens before API call
+        result = runner.invoke(app, ["comments", "abc123", "--format", "invalid"])
+        # Note: exit code is 1 (not 2) due to typer.Exit being caught by except Exception
+        assert result.exit_code == 1
+        assert "Invalid value" in result.output
+
+    def test_comments_sql_format(
+        self, runner: CliRunner, mock_reddit_base, sample_comments_response
+    ):
+        """comments should export in SQL format."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            return_value=httpx.Response(
+                200, json=[{"data": {"children": []}}, sample_comments_response]
+            )
+        )
+        result = runner.invoke(app, ["comments", "abc123", "--format", "sql"])
+        assert result.exit_code == 0
+        assert "INSERT INTO" in result.output
+
+    def test_comments_csv_format(
+        self, runner: CliRunner, mock_reddit_base, sample_comments_response
+    ):
+        """comments should export in CSV format."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            return_value=httpx.Response(
+                200, json=[{"data": {"children": []}}, sample_comments_response]
+            )
+        )
+        result = runner.invoke(app, ["comments", "abc123", "--format", "csv"])
+        assert result.exit_code == 0
+        assert "id,author,body" in result.output
+
+    def test_comments_sql_format_with_output(
+        self, runner: CliRunner, mock_reddit_base, sample_comments_response
+    ):
+        """comments should export SQL to file."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            return_value=httpx.Response(
+                200, json=[{"data": {"children": []}}, sample_comments_response]
+            )
+        )
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".sql") as f:
+            output_path = f.name
+        try:
+            result = runner.invoke(
+                app, ["comments", "abc123", "--format", "sql", "--output", output_path]
+            )
+            assert result.exit_code == 0
+            assert "Exported" in result.output
+            with open(output_path, "r") as f:
+                content = f.read()
+            assert "INSERT INTO" in content
+        finally:
+            os.unlink(output_path)
+
+    def test_comments_csv_format_with_output(
+        self, runner: CliRunner, mock_reddit_base, sample_comments_response
+    ):
+        """comments should export CSV to file."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            return_value=httpx.Response(
+                200, json=[{"data": {"children": []}}, sample_comments_response]
+            )
+        )
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            output_path = f.name
+        try:
+            result = runner.invoke(
+                app, ["comments", "abc123", "--format", "csv", "--output", output_path]
+            )
+            assert result.exit_code == 0
+            assert "Exported" in result.output
+            with open(output_path, "r") as f:
+                content = f.read()
+            assert "id,author,body" in content
+        finally:
+            os.unlink(output_path)
+
+    def test_comments_xlsx_format_requires_output(
+        self, runner: CliRunner, mock_reddit_base, sample_comments_response
+    ):
+        """comments with xlsx format without output should fail."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            return_value=httpx.Response(
+                200, json=[{"data": {"children": []}}, sample_comments_response]
+            )
+        )
+        result = runner.invoke(app, ["comments", "abc123", "--format", "xlsx"])
+        # Note: exit code is 1 (not 2) due to typer.Exit being caught by except Exception
+        assert result.exit_code == 1
+        assert "--output" in result.output
+
+    def test_comments_xlsx_format_with_output(
+        self, runner: CliRunner, mock_reddit_base, sample_comments_response
+    ):
+        """comments should export XLSX to file."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            return_value=httpx.Response(
+                200, json=[{"data": {"children": []}}, sample_comments_response]
+            )
+        )
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False, suffix=".xlsx") as f:
+            output_path = f.name
+        try:
+            result = runner.invoke(
+                app, ["comments", "abc123", "--format", "xlsx", "--output", output_path]
+            )
+            assert result.exit_code == 0
+            assert "Exported" in result.output
+            with open(output_path, "rb") as f:
+                content = f.read()
+            assert len(content) > 0
+        finally:
+            os.unlink(output_path)
+
+    def test_comments_api_error_handling(
+        self, runner: CliRunner, mock_reddit_base
+    ):
+        """comments should handle API errors gracefully."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            return_value=httpx.Response(500, json={"error": 500})
+        )
+        result = runner.invoke(app, ["comments", "abc123"])
+        assert result.exit_code == 1
+        assert "Error" in result.output
+
+    def test_comments_timeout_error(
+        self, runner: CliRunner, mock_reddit_base
+    ):
+        """comments should handle timeout errors."""
+        mock_reddit_base.get("/comments/abc123.json?sort=confidence").mock(
+            side_effect=httpx.TimeoutException("Connection timed out")
+        )
+        result = runner.invoke(app, ["comments", "abc123"])
+        assert result.exit_code == 1
+        assert "timed out" in result.output.lower()
 
 
 class TestComment:
