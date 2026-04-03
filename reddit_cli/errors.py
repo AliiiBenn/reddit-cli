@@ -19,6 +19,9 @@ def handle_api_error(e: Exception) -> None:
         1: General error (network issues, API errors)
         2: Usage error (invalid arguments)
     """
+    # Re-raise typer.Exit exceptions without modification
+    if isinstance(e, typer.Exit):
+        raise e
     if isinstance(e, httpx.TimeoutException):
         typer.echo("Error: Connection timed out. Please check your internet connection and try again.", err=True)
         raise typer.Exit(code=EXIT_GENERAL_ERROR)

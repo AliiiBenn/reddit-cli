@@ -4,7 +4,7 @@ version = "0.6.0"
 description = "A command-line tool for browsing Reddit without requiring an API key"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = ["typer", "httpx", "pydantic"]
+dependencies = ["typer", "httpx", "pydantic", "openpyxl>=3.1.0"]
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-asyncio", "respx", "httpx"]
