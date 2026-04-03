@@ -1,42 +1,29 @@
 import asyncio
+from pathlib import Path
+
 import typer
 
-from reddit_cli.errors import handle_api_error, handle_validation_error
+from reddit_cli.commands._shared import (
+    VALID_SORT_VALUES,
+    VALID_PERIOD_VALUES,
+    _validate_sort_period,
+    _validate_format,
+    validate_output_path,
+)
+from reddit_cli.errors import handle_api_error
 from reddit_cli.export import (
     post_to_sql_insert,
     post_to_csv_row,
     post_csv_header,
+    posts_to_json,
 )
 from reddit_cli.reddit import RedditClient, PostsClient
+from reddit_cli.ui import print_posts
 from reddit_cli.xlsx_export import posts_to_xlsx
 
 
-# Valid values for CLI validation
-VALID_SORT_VALUES = ["hot", "new", "top", "rising", "controversial", "gilded"]
-VALID_PERIOD_VALUES = ["day", "week", "month", "year", "all"]
-VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx"]
-
-
-def _validate_sort_period(sort: str, period: str | None, limit: int) -> None:
-    """Validate sort, period, and limit parameters.
-
-    Args:
-        sort: Sort type
-        period: Time period (or None)
-        limit: Number of results
-
-    Raises:
-        typer.Exit: If validation fails with exit code 2
-    """
-    if sort not in VALID_SORT_VALUES:
-        handle_validation_error("sort", VALID_SORT_VALUES, sort)
-
-    if period is not None and period not in VALID_PERIOD_VALUES:
-        handle_validation_error("period", VALID_PERIOD_VALUES, period)
-
-    if limit < 1 or limit > 100:
-        typer.echo("Error: --limit must be between 1 and 100", err=True)
-        raise typer.Exit(code=2)
+# Valid values for CLI validation (includes json for browse)
+VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx", "json"]
 
 
 def _write_output(
@@ -62,6 +49,16 @@ def _write_output(
         with open(output_file, "wb") as f:
             f.write(xlsx_data)
         typer.echo(f"Exported {len(posts)} posts to {output_file}")
+        return
+
+    if format_type == "json":
+        output = posts_to_json(posts)
+        if output_file:
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(output)
+            typer.echo(f"Exported {len(posts)} posts to {output_file}")
+        else:
+            typer.echo(output)
         return
 
     lines: list[str] = []
@@ -105,13 +102,8 @@ async def _browse_async(
 
 
 def _display_posts(posts: list, after_cursor: str | None, before_cursor: str | None) -> None:
-    """Display posts in terminal format."""
-    for post in posts:
-        typer.echo(f"[{post.score}] {post.title}")
-        typer.echo(f"  ID: {post.id}")
-        typer.echo(f"  r/{post.subreddit} by {post.author}")
-        typer.echo(f"  {post.num_comments} comments")
-        typer.echo()
+    """Display posts in terminal format using Rich."""
+    print_posts(posts)
 
     if after_cursor or before_cursor:
         typer.echo("---")
@@ -166,10 +158,14 @@ def browse(
         output: Output file path
     """
     try:
-        _validate_sort_period(sort, period, limit)
+        _validate_sort_period(sort, period, limit, VALID_SORT_VALUES, VALID_PERIOD_VALUES)
 
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
+
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
 
         if search:
             posts, after_cursor, before_cursor = asyncio.run(
@@ -183,7 +179,7 @@ def browse(
                 typer.echo()
                 _display_posts(posts, after_cursor, before_cursor)
             else:
-                _write_output(posts, format, output)
+                _write_output(posts, format, str(output_path) if output_path else None)
         else:
             posts, after_cursor, before_cursor = asyncio.run(
                 _browse_async(subreddit, sort, limit, period, after, before)
@@ -191,6 +187,6 @@ def browse(
             if format == "display":
                 _display_posts(posts, after_cursor, before_cursor)
             else:
-                _write_output(posts, format, output)
+                _write_output(posts, format, str(output_path) if output_path else None)
     except Exception as e:
         handle_api_error(e)
