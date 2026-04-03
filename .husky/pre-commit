@@ -1,0 +1,14 @@
+#!/bin/sh
+# Pre-commit hook for reddit-cli
+
+# Run ruff linting
+echo "Running ruff lint..."
+ruff check reddit_cli tests
+
+# Run mypy type checking
+echo "Running mypy type check..."
+mypy reddit_cli
+
+# Run pytest
+echo "Running pytest..."
+pytest tests/ -x -q
