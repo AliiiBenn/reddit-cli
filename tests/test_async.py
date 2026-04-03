@@ -134,16 +134,24 @@ async def test_reddit_client_successful_request_first_try():
 
 
 @pytest.mark.asyncio
+@respx.mock
 async def test_reddit_client_timeout_raises():
     """Test that timeout errors are raised properly."""
+    route = respx.get("https://www.reddit.com/r/python/hot.json")
+    route.mock(side_effect=httpx.TimeoutException("Connection timed out"))
+
     async with RedditClient() as client:
         with pytest.raises(httpx.TimeoutException):
             await client.get("/r/python/hot.json")
 
 
 @pytest.mark.asyncio
+@respx.mock
 async def test_reddit_client_connect_error_raises():
     """Test that connection errors are raised properly."""
+    route = respx.get("https://www.reddit.com/r/python/hot.json")
+    route.mock(side_effect=httpx.ConnectError("Connection failed"))
+
     async with RedditClient() as client:
         with pytest.raises(httpx.ConnectError):
             await client.get("/r/python/hot.json")

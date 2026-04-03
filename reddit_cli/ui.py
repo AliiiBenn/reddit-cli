@@ -6,7 +6,8 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
 # Console instance for stderr output (user-facing messages)
-console = Console(stderr=True)
+# Use a wide terminal width to prevent text wrapping
+console = Console(stderr=True, width=120)
 
 
 def print_table(data: list[dict[str, Any]], columns: list[str]) -> None:
@@ -43,11 +44,11 @@ def print_posts(posts: list) -> None:
         return
 
     table = Table(show_header=True, header_style="bold cyan")
-    table.add_column("Score", style="yellow", justify="right")
-    table.add_column("Title", style="white")
+    table.add_column("Score", style="yellow", justify="right", width=8)
+    table.add_column("Title", style="white", no_wrap=True)
     table.add_column("Subreddit", style="cyan")
     table.add_column("Author", style="green")
-    table.add_column("Comments", style="magenta", justify="right")
+    table.add_column("Comments", style="magenta", justify="right", width=10)
 
     for post in posts:
         # Color score based on value
@@ -59,7 +60,7 @@ def print_posts(posts: list) -> None:
 
         table.add_row(
             score_str,
-            post.title[:60] + "..." if len(post.title) > 60 else post.title,
+            post.title,
             f"r/{post.subreddit}",
             post.author,
             str(post.num_comments),
