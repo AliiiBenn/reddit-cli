@@ -116,6 +116,43 @@ def help_cmd() -> None:
     typer.echo(HELP_TEXT)
 
 
+@app.command(name="completion")
+def install_completion(
+    shell: str = typer.Option("", "--shell", help="Shell type (bash, zsh, fish, powershell)")
+) -> None:
+    """Install shell completion for this CLI.
+
+    Run this command to enable shell completion for your shell:
+    - bash: reddit completion bash >> ~/.bashrc
+    - zsh: reddit completion zsh >> ~/.zshrc
+    - fish: reddit completion fish > ~/.config/fish/completions/reddit.fish
+    - powershell: reddit completion powershell >> $PROFILE
+    """
+    from typer import complete
+
+    if not shell:
+        typer.echo("Please specify a shell: --shell bash|zsh|fish|powershell")
+        raise typer.Exit(code=1)
+
+    prog_name = "reddit"
+
+    if shell == "bash":
+        typer.echo(f"Run this command to enable bash completion:")
+        typer.echo(f"  eval \"$({prog_name} --show-completion bash)\"")
+    elif shell == "zsh":
+        typer.echo(f"Run this command to enable zsh completion:")
+        typer.echo(f"  eval \"$({prog_name} --show-completion zsh)\"")
+    elif shell == "fish":
+        typer.echo(f"Run this command to enable fish completion:")
+        typer.echo(f"  {prog_name} --show-completion fish > ~/.config/fish/completions/{prog_name}.fish")
+    elif shell == "powershell":
+        typer.echo(f"Run this command to enable powershell completion:")
+        typer.echo(f"  {prog_name} --show-completion powershell >> $PROFILE")
+    else:
+        typer.echo(f"Unsupported shell: {shell}")
+        raise typer.Exit(code=1)
+
+
 @app.callback(invoke_without_command=True)
 def main_callback(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:
