@@ -105,14 +105,14 @@ class TestSubreddit:
     def test_subreddit_with_rules_flag(
         self, runner: CliRunner, mock_reddit_base, sample_subreddit_response, sample_rules_response
     ):
-        """subreddit python --rules should show rules."""
+        """subreddits rules python should show rules."""
         mock_reddit_base.get("/r/python/about.json").mock(
             return_value=httpx.Response(200, json=sample_subreddit_response)
         )
         mock_reddit_base.get("/r/python/about/rules.json").mock(
             return_value=httpx.Response(200, json=sample_rules_response)
         )
-        result = runner.invoke(app, ["subreddit", "python", "--rules"])
+        result = runner.invoke(app, ["subreddits", "rules", "python"])
         assert result.exit_code == 0
         assert "Be respectful" in result.output
 
@@ -130,165 +130,165 @@ class TestSubreddit:
         assert result.exit_code == 0
 
 class TestSubreddits:
-    """Test suite for subreddits command."""
+    """Test suite for subreddits popular command."""
 
     def test_subreddits_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits should exit with code 0."""
+        """subreddits popular should exit with code 0."""
         mock_reddit_base.get(url="/subreddits.json", params={"limit": 25, "sort": "subscribers"}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits"])
+        result = runner.invoke(app, ["subreddits", "popular"])
         assert result.exit_code == 0
 
     def test_subreddits_output_contains_names(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits output should contain subreddit names."""
+        """subreddits popular output should contain subreddit names."""
         mock_reddit_base.get(url="/subreddits.json", params={"limit": 25, "sort": "subscribers"}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits"])
+        result = runner.invoke(app, ["subreddits", "popular"])
         assert "r/python" in result.output
         assert "r/programming" in result.output
 
     def test_subreddits_with_limit(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits should accept --limit option."""
+        """subreddits popular should accept --limit option."""
         mock_reddit_base.get(url="/subreddits.json", params={"limit": 5, "sort": "subscribers"}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--limit", "5"])
+        result = runner.invoke(app, ["subreddits", "popular", "--limit", "5"])
         assert result.exit_code == 0
 
     def test_subreddits_with_sort(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits should accept --sort option."""
+        """subreddits popular should accept --sort option."""
         mock_reddit_base.get(url="/subreddits.json", params={"limit": 25, "sort": "gilded"}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--sort", "gilded"])
+        result = runner.invoke(app, ["subreddits", "popular", "--sort", "gilded"])
         assert result.exit_code == 0
 
     def test_subreddits_empty_results(
         self, runner: CliRunner, mock_reddit_base, empty_posts_response
     ):
-        """subreddits should handle empty results gracefully."""
+        """subreddits popular should handle empty results gracefully."""
         mock_reddit_base.get(url="/subreddits.json", params={"limit": 25, "sort": "subscribers"}).mock(
             return_value=httpx.Response(200, json=empty_posts_response)
         )
-        result = runner.invoke(app, ["subreddits"])
+        result = runner.invoke(app, ["subreddits", "popular"])
         assert result.exit_code == 0
 
 
 class TestSubredditsSearch:
-    """Test suite for subreddits --search command."""
+    """Test suite for subreddits search command."""
 
     def test_search_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --search should exit with code 0."""
+        """subreddits search should exit with code 0."""
         mock_reddit_base.get(url="/subreddits/search.json", params={"q": "python", "limit": 25}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--search", "python"])
+        result = runner.invoke(app, ["subreddits", "search", "python"])
         assert result.exit_code == 0
 
     def test_search_output_contains_query(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --search output should mention the query."""
+        """subreddits search output should mention the query."""
         mock_reddit_base.get(url="/subreddits/search.json", params={"q": "programming", "limit": 25}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--search", "programming"])
+        result = runner.invoke(app, ["subreddits", "search", "programming"])
         assert "programming" in result.output.lower()
 
     def test_search_missing_query(self, runner: CliRunner):
-        """subreddits --search should fail without query."""
-        result = runner.invoke(app, ["subreddits", "--search"])
+        """subreddits search should fail without query."""
+        result = runner.invoke(app, ["subreddits", "search"])
         assert result.exit_code != 0
 
     def test_search_no_results(self, runner: CliRunner, mock_reddit_base, empty_posts_response):
-        """subreddits --search should handle empty results."""
+        """subreddits search should handle empty results."""
         mock_reddit_base.get(url="/subreddits/search.json", params={"q": "nonexistent123xyz", "limit": 25}).mock(
             return_value=httpx.Response(200, json=empty_posts_response)
         )
-        result = runner.invoke(app, ["subreddits", "--search", "nonexistent123xyz"])
+        result = runner.invoke(app, ["subreddits", "search", "nonexistent123xyz"])
         assert result.exit_code == 0
         assert "No subreddits found" in result.output
 
 
 class TestSubredditsNew:
-    """Test suite for subreddits --new command."""
+    """Test suite for subreddits new command."""
 
     def test_new_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --new should exit with code 0."""
+        """subreddits new should exit with code 0."""
         mock_reddit_base.get(url="/subreddits/new.json", params={"limit": 25}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--new"])
+        result = runner.invoke(app, ["subreddits", "new"])
         assert result.exit_code == 0
 
     def test_new_with_limit(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --new should accept --limit option."""
+        """subreddits new should accept --limit option."""
         mock_reddit_base.get(url="/subreddits/new.json", params={"limit": 10}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--new", "--limit", "10"])
+        result = runner.invoke(app, ["subreddits", "new", "--limit", "10"])
         assert result.exit_code == 0
 
 
 class TestSubredditsGold:
-    """Test suite for subreddits --gold command."""
+    """Test suite for subreddits gold command."""
 
     def test_gold_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --gold should exit with code 0."""
+        """subreddits gold should exit with code 0."""
         mock_reddit_base.get(url="/subreddits/gold.json", params={"limit": 25}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--gold"])
+        result = runner.invoke(app, ["subreddits", "gold"])
         assert result.exit_code == 0
 
     def test_gold_output_contains_subreddits(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --gold output should contain subreddit names."""
+        """subreddits gold output should contain subreddit names."""
         mock_reddit_base.get(url="/subreddits/gold.json", params={"limit": 25}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--gold"])
+        result = runner.invoke(app, ["subreddits", "gold"])
         assert "python" in result.output
 
 
 class TestSubredditsDefault:
-    """Test suite for subreddits --default command."""
+    """Test suite for subreddits default command."""
 
     def test_default_exit_code(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --default should exit with code 0."""
+        """subreddits default should exit with code 0."""
         mock_reddit_base.get(url="/subreddits/default.json", params={"limit": 25}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--default"])
+        result = runner.invoke(app, ["subreddits", "default"])
         assert result.exit_code == 0
 
     def test_default_output_contains_subreddits(
         self, runner: CliRunner, mock_reddit_base, sample_subreddits_list_response
     ):
-        """subreddits --default output should contain subreddit names."""
+        """subreddits default output should contain subreddit names."""
         mock_reddit_base.get(url="/subreddits/default.json", params={"limit": 25}).mock(
             return_value=httpx.Response(200, json=sample_subreddits_list_response)
         )
-        result = runner.invoke(app, ["subreddits", "--default"])
+        result = runner.invoke(app, ["subreddits", "default"])
         assert "python" in result.output
