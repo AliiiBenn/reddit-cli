@@ -9,9 +9,10 @@ from reddit_cli.export import (
     comment_csv_header,
 )
 from reddit_cli.reddit import RedditClient, CommentsClient, Comment
+from reddit_cli.xlsx_export import comments_to_xlsx
 
 
-VALID_FORMAT_VALUES = ["display", "sql", "csv"]
+VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx"]
 
 
 def _flatten_comments(comments: list[Comment]) -> list[Comment]:
@@ -40,12 +41,22 @@ def _write_comments_output(
 
     Args:
         comments: List of Comment objects
-        format_type: Output format (display, sql, csv)
+        format_type: Output format (display, sql, csv, xlsx)
         output_file: File path or None for stdout
     """
     flat_comments = _flatten_comments(comments)
 
     if format_type == "display":
+        return
+
+    if format_type == "xlsx":
+        if not output_file:
+            typer.echo("Error: --output is required for xlsx format", err=True)
+            raise typer.Exit(code=2)
+        xlsx_data = comments_to_xlsx(comments)
+        with open(output_file, "wb") as f:
+            f.write(xlsx_data)
+        typer.echo(f"Exported {len(flat_comments)} comments to {output_file}")
         return
 
     lines: list[str] = []
@@ -107,7 +118,7 @@ def comments(
         post_id: Post ID (with or without t3_ prefix)
         sort: Sort type (confidence, top, new, old, controversial, qa)
         depth: Maximum comment depth
-        format: Output format (display, sql, csv)
+        format: Output format (display, sql, csv, xlsx)
         output: Output file path
     """
     try:
@@ -138,7 +149,7 @@ def comment(
         post_id: Post ID (with or without t3_ prefix)
         comment_id: Comment ID (with or without t1_ prefix)
         replies: Include replies
-        format: Output format (display, sql, csv)
+        format: Output format (display, sql, csv, xlsx)
         output: Output file path
     """
     try:

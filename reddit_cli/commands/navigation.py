@@ -8,12 +8,13 @@ from reddit_cli.export import (
     post_csv_header,
 )
 from reddit_cli.reddit import RedditClient, PostsClient
+from reddit_cli.xlsx_export import posts_to_xlsx
 
 
 # Valid values for CLI validation
 VALID_SORT_VALUES = ["hot", "new", "top", "rising", "controversial", "gilded"]
 VALID_PERIOD_VALUES = ["day", "week", "month", "year", "all"]
-VALID_FORMAT_VALUES = ["display", "sql", "csv"]
+VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx"]
 
 
 def _validate_sort_period(sort: str, period: str | None, limit: int) -> None:
@@ -47,10 +48,20 @@ def _write_posts_output(
 
     Args:
         posts: List of Post objects
-        format_type: Output format (display, sql, csv)
+        format_type: Output format (display, sql, csv, xlsx)
         output_file: File path or None for stdout
     """
     if format_type == "display":
+        return
+
+    if format_type == "xlsx":
+        if not output_file:
+            typer.echo("Error: --output is required for xlsx format", err=True)
+            raise typer.Exit(code=2)
+        xlsx_data = posts_to_xlsx(posts)
+        with open(output_file, "wb") as f:
+            f.write(xlsx_data)
+        typer.echo(f"Exported {len(posts)} posts to {output_file}")
         return
 
     lines: list[str] = []
@@ -126,7 +137,7 @@ def frontpage(
         period: Time period for top/controversial (day, week, month, year, all)
         after: Pagination cursor
         before: Pagination cursor
-        format: Output format (display, sql, csv)
+        format: Output format (display, sql, csv, xlsx)
         output: Output file path
     """
     try:
@@ -163,7 +174,7 @@ def home(
         period: Time period for top/controversial (day, week, month, year, all)
         after: Pagination cursor
         before: Pagination cursor
-        format: Output format (display, sql, csv)
+        format: Output format (display, sql, csv, xlsx)
         output: Output file path
     """
     try:
@@ -198,7 +209,7 @@ def best(
         period: Time period (day, week, month, year, all)
         after: Pagination cursor
         before: Pagination cursor
-        format: Output format (display, sql, csv)
+        format: Output format (display, sql, csv, xlsx)
         output: Output file path
     """
     try:

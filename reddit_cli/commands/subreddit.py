@@ -9,11 +9,12 @@ from reddit_cli.export import (
     subreddit_csv_header,
 )
 from reddit_cli.reddit import RedditClient, SubredditsClient
+from reddit_cli.xlsx_export import subreddits_to_xlsx
 
 
 # Valid values for CLI validation
 VALID_SUBREDDIT_SORT_VALUES = ["gilded", "subscribers", "active"]
-VALID_FORMAT_VALUES = ["display", "sql", "csv"]
+VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx"]
 
 
 def _validate_list_params(sort: str, limit: int) -> None:
@@ -33,6 +34,16 @@ def _write_subreddits_output(
 ) -> None:
     """Write subreddits to file or stdout in the specified format."""
     if format_type == "display":
+        return
+
+    if format_type == "xlsx":
+        if not output_file:
+            typer.echo("Error: --output is required for xlsx format", err=True)
+            raise typer.Exit(code=2)
+        xlsx_data = subreddits_to_xlsx(subreddits)
+        with open(output_file, "wb") as f:
+            f.write(xlsx_data)
+        typer.echo(f"Exported {len(subreddits)} subreddits to {output_file}")
         return
 
     lines: list[str] = []
@@ -85,7 +96,7 @@ def subreddit(
     Args:
         name: Subreddit name (with or without r/ prefix)
         rules: Show subreddit rules
-        format: Output format (display, sql, csv)
+        format: Output format (display, sql, csv, xlsx)
         output: Output file path
     """
     try:
@@ -137,7 +148,7 @@ async def _list_subreddits_async(
 def subreddits_popular(
     sort: str = typer.Option("subscribers", "--sort", help="Sort type (subscribers, active, gilded)"),
     limit: int = typer.Option(25, "--limit", help="Number of results"),
-    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv, xlsx)"),
     output: str | None = typer.Option(None, "--output", help="Output file path"),
 ) -> None:
     """List popular subreddits."""
@@ -191,7 +202,7 @@ async def _search_async(
 def subreddits_search(
     query: str = typer.Argument(..., help="Search query"),
     limit: int = typer.Option(25, "--limit", help="Number of results"),
-    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv, xlsx)"),
     output: str | None = typer.Option(None, "--output", help="Output file path"),
 ) -> None:
     """Search subreddits by keyword."""
@@ -227,7 +238,7 @@ async def _new_async(
 @subreddits_app.command(name="new")
 def subreddits_new(
     limit: int = typer.Option(25, "--limit", help="Number of results"),
-    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv, xlsx)"),
     output: str | None = typer.Option(None, "--output", help="Output file path"),
 ) -> None:
     """List newly created subreddits."""
@@ -263,7 +274,7 @@ async def _gold_async(
 @subreddits_app.command(name="gold")
 def subreddits_gold(
     limit: int = typer.Option(25, "--limit", help="Number of results"),
-    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv, xlsx)"),
     output: str | None = typer.Option(None, "--output", help="Output file path"),
 ) -> None:
     """List Reddit Gold subreddits."""
@@ -299,7 +310,7 @@ async def _default_async(
 @subreddits_app.command(name="default")
 def subreddits_default(
     limit: int = typer.Option(25, "--limit", help="Number of results"),
-    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv, xlsx)"),
     output: str | None = typer.Option(None, "--output", help="Output file path"),
 ) -> None:
     """List default subreddits."""

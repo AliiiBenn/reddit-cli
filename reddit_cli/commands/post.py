@@ -5,9 +5,10 @@ import typer
 from reddit_cli.errors import handle_api_error, handle_validation_error
 from reddit_cli.export import post_to_sql_insert, post_to_csv_row, post_csv_header
 from reddit_cli.reddit import RedditClient, PostsClient
+from reddit_cli.xlsx_export import posts_to_xlsx
 
 
-VALID_FORMAT_VALUES = ["display", "sql", "csv"]
+VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx"]
 
 
 async def _post_async(post_id: str):
@@ -35,7 +36,7 @@ def post(
         post_id: Post ID (with or without t3_ prefix)
         view: Show post details
         info: Show detailed post info
-        format: Output format (display, sql, csv)
+        format: Output format (display, sql, csv, xlsx)
         output: Output file path
     """
     try:
@@ -55,6 +56,14 @@ def post(
             typer.echo()
             if post_obj.selftext:
                 typer.echo(post_obj.selftext.encode(sys.stdout.encoding, errors="replace").decode(sys.stdout.encoding))
+        elif format == "xlsx":
+            if not output:
+                typer.echo("Error: --output is required for xlsx format", err=True)
+                raise typer.Exit(code=2)
+            xlsx_data = posts_to_xlsx([post_obj])
+            with open(output, "wb") as f:
+                f.write(xlsx_data)
+            typer.echo(f"Exported 1 post to {output}")
         else:
             lines = []
             if format == "csv":
