@@ -5,7 +5,7 @@ from reddit_cli.commands.comments import comment, comments
 from reddit_cli.commands.navigation import best, frontpage, home
 from reddit_cli.commands.post import post
 from reddit_cli.commands.search import search
-from reddit_cli.commands.subreddit import subreddit, subreddits
+from reddit_cli.commands.subreddit import subreddit, subreddits, subreddits_app
 
 
 def show_help() -> None:
@@ -60,18 +60,18 @@ COMMENTS
 SUBREDDITS
     reddit subreddit <name>          Get subreddit info
         --rules                   Show subreddit rules
-        --moderators              List moderators (if public)
 
-    reddit subreddits               List popular subreddits
+    reddit subreddits popular           List popular subreddits
         --sort subscribers|active
-        --limit <n>               Number of results
+        --limit <n>                   Number of results
 
-    reddit subreddits --search <query>  Search subreddits by keyword
-        --limit <n>               Number of results (max 25)
+    reddit subreddits search <query>    Search subreddits by keyword
+        --limit <n>                   Number of results (max 25)
 
-    reddit subreddits --new            List newly created subreddits
-    reddit subreddits --gold            List Reddit Gold subreddits
-    reddit subreddits --default         List default subreddits
+    reddit subreddits new              List newly created subreddits
+    reddit subreddits gold             List Reddit Gold subreddits
+    reddit subreddits default          List default subreddits
+    reddit subreddits rules <name>     Show subreddit rules
 
 EXAMPLES
     reddit frontpage
@@ -83,9 +83,9 @@ EXAMPLES
     reddit post t3_abc123 --duplicates
     reddit comments t3_abc123 --sort top --depth 3
     reddit subreddit python --rules
-    reddit subreddits --sort subscribers
-    reddit subreddits --search python --limit 10
-    reddit subreddits --new
+    reddit subreddits popular
+    reddit subreddits search python --limit 10
+    reddit subreddits new
 
 For more information: https://github.com/AliiiBenn/reddit-cli
 """
@@ -95,7 +95,7 @@ app = typer.Typer()
 app.command()(browse)
 app.command()(post)
 app.command()(subreddit)
-app.command()(subreddits)
+app.add_typer(subreddits_app, name="subreddits")
 app.command()(comments)
 app.command()(comment)
 app.command()(frontpage)
