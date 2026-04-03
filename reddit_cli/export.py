@@ -1,5 +1,6 @@
-"""Export utilities for SQL and CSV formats."""
+"""Export utilities for SQL, CSV, and JSON formats."""
 
+import json
 import re
 from reddit_cli.reddit.models import Post, Comment, Subreddit
 
