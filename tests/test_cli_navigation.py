@@ -254,7 +254,7 @@ class TestNavigationOutputFile:
             return_value=httpx.Response(200, json=sample_navigation_response)
         )
         result = runner.invoke(app, ["frontpage", "--format", "xlsx"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--output is required for xlsx format" in result.output
 
     def test_frontpage_xlsx_to_file(self, runner, mock_reddit_base, sample_navigation_response, tmp_path):
@@ -272,7 +272,7 @@ class TestNavigationValidation:
 
     def test_frontpage_invalid_sort(self, runner, mock_reddit_base, sample_navigation_response):
         result = runner.invoke(app, ["frontpage", "--sort", "invalid_sort"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'invalid_sort'" in result.output
         assert "hot" in result.output
 
@@ -281,23 +281,23 @@ class TestNavigationValidation:
             return_value=httpx.Response(200, json=sample_navigation_response)
         )
         result = runner.invoke(app, ["frontpage", "--sort", "top", "--period", "invalid_period"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'invalid_period'" in result.output
         assert "day" in result.output
 
     def test_frontpage_limit_zero(self, runner, mock_reddit_base, sample_navigation_response):
         result = runner.invoke(app, ["frontpage", "--limit", "0"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--limit must be between 1 and 100" in result.output
 
     def test_frontpage_limit_negative(self, runner, mock_reddit_base, sample_navigation_response):
         result = runner.invoke(app, ["frontpage", "--limit", "-5"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--limit must be between 1 and 100" in result.output
 
     def test_frontpage_limit_over_100(self, runner, mock_reddit_base, sample_navigation_response):
         result = runner.invoke(app, ["frontpage", "--limit", "101"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--limit must be between 1 and 100" in result.output
 
     def test_best_invalid_period(self, runner, mock_reddit_base, sample_navigation_response):
@@ -305,12 +305,12 @@ class TestNavigationValidation:
             return_value=httpx.Response(200, json=sample_navigation_response)
         )
         result = runner.invoke(app, ["best", "--period", "invalid"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'invalid'" in result.output
 
     def test_home_invalid_sort(self, runner, mock_reddit_base, sample_navigation_response):
         result = runner.invoke(app, ["home", "--sort", "bad_sort"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'bad_sort'" in result.output
 
 class TestNavigationAllSortValues:
@@ -406,6 +406,6 @@ class TestNavigationInvalidFormat:
             return_value=httpx.Response(200, json=sample_navigation_response)
         )
         result = runner.invoke(app, ["frontpage", "--format", "invalid_format"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'invalid_format'" in result.output
         assert "display" in result.output

@@ -153,7 +153,7 @@ class TestSearch:
             return_value=httpx.Response(200, json=sample_search_response)
         )
         result = runner.invoke(app, ["search", "python", "--format", "xlsx"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--output is required for xlsx format" in result.output
 
     def test_search_format_sql_with_output(
@@ -199,26 +199,26 @@ class TestSearch:
     def test_search_invalid_format(self, runner: CliRunner, mock_reddit_base):
         """search should fail with invalid format value."""
         result = runner.invoke(app, ["search", "python", "--format", "invalid_format"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'invalid_format' for --format" in result.output
     # ===== Limit validation tests =====
 
     def test_search_limit_zero(self, runner: CliRunner, mock_reddit_base):
         """search should fail when --limit is 0."""
         result = runner.invoke(app, ["search", "python", "--limit", "0"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--limit must be between 1 and 100" in result.output
 
     def test_search_limit_negative(self, runner: CliRunner, mock_reddit_base):
         """search should fail when --limit is negative."""
         result = runner.invoke(app, ["search", "python", "--limit", "-5"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--limit must be between 1 and 100" in result.output
 
     def test_search_limit_above_100(self, runner: CliRunner, mock_reddit_base):
         """search should fail when --limit is above 100."""
         result = runner.invoke(app, ["search", "python", "--limit", "101"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--limit must be between 1 and 100" in result.output
 
     # ===== Sort validation tests =====
@@ -226,7 +226,7 @@ class TestSearch:
     def test_search_invalid_sort(self, runner: CliRunner, mock_reddit_base):
         """search should fail with invalid sort value."""
         result = runner.invoke(app, ["search", "python", "--sort", "invalid_sort"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'invalid_sort' for --sort" in result.output
 
     # ===== Period validation tests =====
@@ -234,7 +234,7 @@ class TestSearch:
     def test_search_invalid_period(self, runner: CliRunner, mock_reddit_base):
         """search should fail with invalid period value."""
         result = runner.invoke(app, ["search", "python", "--period", "invalid_period"])
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value 'invalid_period' for --period" in result.output
 
     # ===== Cursor display tests =====

@@ -178,7 +178,7 @@ class TestComments:
         # No mock needed - validation happens before API call
         result = runner.invoke(app, ["comments", "abc123", "--format", "invalid"])
         # Note: exit code is 1 (not 2) due to typer.Exit being caught by except Exception
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "Invalid value" in result.output
 
     def test_comments_sql_format(
@@ -264,7 +264,7 @@ class TestComments:
         )
         result = runner.invoke(app, ["comments", "abc123", "--format", "xlsx"])
         # Note: exit code is 1 (not 2) due to typer.Exit being caught by except Exception
-        assert result.exit_code == 1
+        assert result.exit_code == 2
         assert "--output" in result.output
 
     def test_comments_xlsx_format_with_output(
