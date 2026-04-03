@@ -178,29 +178,11 @@ class TestSubredditToCsvRow:
         fields = subreddit_csv_header().split(",")
         assert len(fields) == 6
 
-    def test_subreddit_csv_header_format(self):
-        header = subreddit_csv_header()
-        assert header == "id,display_name,title,description,subscribers,active_users"
-
-    def test_subreddit_csv_header_has_correct_field_count(self):
-        fields = subreddit_csv_header().split(",")
-        assert len(fields) == 6
-
-
     def test_subreddit_with_zero_subscribers(self):
         subreddit = Subreddit(id="2qh13", display_name="test",
                              title="Test Subreddit",
                              description="Description",
                              subscribers=0, accounts_active=0)
-        sql = subreddit_to_sql_insert(subreddit)
-        csv = subreddit_to_csv_row(subreddit)
-        assert ", 0, 0" in sql or ",0,0" in sql
-        assert ",0,0" in csv
-    def test_subreddit_with_zero_subscribers(self):
-        subreddit = Subreddit(id="2qh13", display_name="test",
-                             title="Test Subreddit",
-                             description="Description",
-                             subscribers=0, active_users=0)
         sql = subreddit_to_sql_insert(subreddit)
         csv = subreddit_to_csv_row(subreddit)
         assert ", 0, 0" in sql or ",0,0" in sql

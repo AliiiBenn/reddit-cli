@@ -1,6 +1,32 @@
 """Export utilities for SQL and CSV formats."""
 
+import re
 from reddit_cli.reddit.models import Post, Comment, Subreddit
+
+# Whitelist pattern for table names (alphanumeric and underscores only)
+_VALID_TABLE_NAME_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+# Maximum length for table names
+_MAX_TABLE_NAME_LENGTH = 64
+
+
+def _validate_table_name(table: str) -> str:
+    """Validate table name to prevent SQL injection.
+
+    Args:
+        table: Table name to validate
+
+    Returns:
+        Validated table name
+
+    Raises:
+        ValueError: If table name contains invalid characters or is too long
+    """
+    if not table or len(table) > _MAX_TABLE_NAME_LENGTH:
+        raise ValueError(f"Invalid table name: {table}")
+    if not _VALID_TABLE_NAME_PATTERN.match(table):
+        raise ValueError(f"Table name must contain only alphanumeric characters and underscores: {table}")
+    return table
 
 
 def escape_sql_value(value: str) -> str:
@@ -25,8 +51,9 @@ def post_to_sql_insert(post: Post, table: str = "posts") -> str:
     Returns:
         SQL INSERT statement
     """
+    safe_table = _validate_table_name(table)
     return (
-        f"INSERT INTO {table} "
+        f"INSERT INTO {safe_table} "
         f"(id, title, author, subreddit, score, num_comments, url, permalink, created_utc, selftext) "
         f"VALUES "
         f"('{post.id}', '{escape_sql_value(post.title)}', '{escape_sql_value(post.author)}', "
@@ -74,8 +101,9 @@ def comment_to_sql_insert(comment: Comment, table: str = "comments") -> str:
     Returns:
         SQL INSERT statement
     """
+    safe_table = _validate_table_name(table)
     return (
-        f"INSERT INTO {table} "
+        f"INSERT INTO {safe_table} "
         f"(id, author, body, score, created_utc, parent_id, link_id, depth) "
         f"VALUES "
         f"('{comment.id}', '{escape_sql_value(comment.author)}', '{escape_sql_value(comment.body)}', "
@@ -119,8 +147,9 @@ def subreddit_to_sql_insert(subreddit: Subreddit, table: str = "subreddits") -> 
     Returns:
         SQL INSERT statement
     """
+    safe_table = _validate_table_name(table)
     return (
-        f"INSERT INTO {table} "
+        f"INSERT INTO {safe_table} "
         f"(id, display_name, title, description, subscribers, active_users) "
         f"VALUES "
         f"('{subreddit.id}', '{escape_sql_value(subreddit.display_name)}', "
@@ -151,3 +180,51 @@ def subreddit_to_csv_row(subreddit: Subreddit) -> str:
 def subreddit_csv_header() -> str:
     """Return CSV header for subreddits."""
     return "id,display_name,title,description,subscribers,active_users"
+
+
+def post_to_json(post: Post) -> str:
+    """Convert a Post to a JSON string.
+
+    Args:
+        post: Post model instance
+
+    Returns:
+        JSON string representation of the post
+    """
+    return json.dumps(post.model_dump(), ensure_ascii=False)
+
+
+def posts_to_json(posts: list[Post]) -> str:
+    """Convert a list of Posts to a JSON string.
+
+    Args:
+        posts: List of Post model instances
+
+    Returns:
+        JSON string representation of the posts
+    """
+    return json.dumps([post.model_dump() for post in posts], ensure_ascii=False)
+
+
+def comment_to_json(comment: Comment) -> str:
+    """Convert a Comment to a JSON string.
+
+    Args:
+        comment: Comment model instance
+
+    Returns:
+        JSON string representation of the comment
+    """
+    return json.dumps(comment.model_dump(), ensure_ascii=False)
+
+
+def comments_to_json(comments: list[Comment]) -> str:
+    """Convert a list of Comments to a JSON string.
+
+    Args:
+        comments: List of Comment model instances
+
+    Returns:
+        JSON string representation of the comments
+    """
+    return json.dumps([comment.model_dump() for comment in comments], ensure_ascii=False)
