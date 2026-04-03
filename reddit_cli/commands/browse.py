@@ -1,5 +1,4 @@
 import asyncio
-import sys
 import typer
 
 from reddit_cli.errors import handle_api_error, handle_validation_error
