@@ -17,15 +17,7 @@ VALID_FORMAT_VALUES = ["display", "sql", "csv"]
 
 
 def _validate_list_params(sort: str, limit: int) -> None:
-    """Validate sort and limit parameters.
-
-    Args:
-        sort: Sort type
-        limit: Number of results
-
-    Raises:
-        typer.Exit: If validation fails with exit code 2
-    """
+    """Validate sort and limit parameters."""
     if sort not in VALID_SUBREDDIT_SORT_VALUES:
         handle_validation_error("sort", VALID_SUBREDDIT_SORT_VALUES, sort)
 
@@ -39,13 +31,7 @@ def _write_subreddits_output(
     format_type: str,
     output_file: str | None,
 ) -> None:
-    """Write subreddits to file or stdout in the specified format.
-
-    Args:
-        subreddits: List of Subreddit objects
-        format_type: Output format (display, sql, csv)
-        output_file: File path or None for stdout
-    """
+    """Write subreddits to file or stdout in the specified format."""
     if format_type == "display":
         return
 
@@ -129,66 +115,46 @@ def subreddit(
         handle_api_error(e)
 
 
+# =============================================================================
+# Subreddits Group - Typer subcommand structure
+# =============================================================================
+
+subreddits_app = typer.Typer()
+
+
 async def _list_subreddits_async(
     sort: str = "subscribers",
     limit: int = 25,
 ) -> list:
-    """Async implementation of subreddits listing.
-
-    Returns:
-        List of Subreddit objects
-    """
+    """Async implementation of subreddits listing."""
     async with RedditClient() as client:
         subreddits_client = SubredditsClient(client)
         subreddits = await subreddits_client.list_subreddits(sort, limit)
         return subreddits
 
 
-def subreddits(
-    search: str | None = None,
-    new: bool = False,
-    gold: bool = False,
-    default: bool = False,
-    sort: str = "subscribers",
-    limit: int = 25,
-    format: str = "display",
-    output: str | None = None,
+@subreddits_app.command(name="popular")
+def subreddits_popular(
+    sort: str = typer.Option("subscribers", "--sort", help="Sort type (subscribers, active, gilded)"),
+    limit: int = typer.Option(25, "--limit", help="Number of results"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    output: str | None = typer.Option(None, "--output", help="Output file path"),
 ) -> None:
-    """List popular subreddits.
-
-    Args:
-        search: Search subreddits by keyword
-        new: List newly created subreddits
-        gold: List Reddit Gold subreddits
-        default: List default subreddits
-        sort: Sort type (subscribers, active)
-        limit: Number of subreddits to return
-        format: Output format (display, sql, csv)
-        output: Output file path
-    """
+    """List popular subreddits."""
     try:
         if format not in VALID_FORMAT_VALUES:
             handle_validation_error("format", VALID_FORMAT_VALUES, format)
 
-        if search:
-            asyncio.run(_search_async(search, limit, format, output))
-        elif new:
-            asyncio.run(_new_async(limit, format, output))
-        elif gold:
-            asyncio.run(_gold_async(limit, format, output))
-        elif default:
-            asyncio.run(_default_async(limit, format, output))
+        _validate_list_params(sort, limit)
+        subreddits_list = asyncio.run(_list_subreddits_async(sort, limit))
+        if format == "display":
+            for sub in subreddits_list:
+                typer.echo(f"r/{sub.display_name}")
+                typer.echo(f"  {sub.title}")
+                typer.echo(f"  Subscribers: {sub.subscribers:,}")
+                typer.echo()
         else:
-            _validate_list_params(sort, limit)
-            subreddits_list = asyncio.run(_list_subreddits_async(sort, limit))
-            if format == "display":
-                for sub in subreddits_list:
-                    typer.echo(f"r/{sub.display_name}")
-                    typer.echo(f"  {sub.title}")
-                    typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                    typer.echo()
-            else:
-                _write_subreddits_output(subreddits_list, format, output)
+            _write_subreddits_output(subreddits_list, format, output)
     except Exception as e:
         handle_api_error(e)
 
@@ -221,6 +187,23 @@ async def _search_async(
             _write_subreddits_output(subreddits, format, output)
 
 
+@subreddits_app.command(name="search")
+def subreddits_search(
+    query: str = typer.Argument(..., help="Search query"),
+    limit: int = typer.Option(25, "--limit", help="Number of results"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    output: str | None = typer.Option(None, "--output", help="Output file path"),
+) -> None:
+    """Search subreddits by keyword."""
+    try:
+        if format not in VALID_FORMAT_VALUES:
+            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+
+        asyncio.run(_search_async(query, limit, format, output))
+    except Exception as e:
+        handle_api_error(e)
+
+
 async def _new_async(
     limit: int = 25,
     format: str = "display",
@@ -239,6 +222,22 @@ async def _new_async(
                 typer.echo()
         else:
             _write_subreddits_output(subreddits, format, output)
+
+
+@subreddits_app.command(name="new")
+def subreddits_new(
+    limit: int = typer.Option(25, "--limit", help="Number of results"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    output: str | None = typer.Option(None, "--output", help="Output file path"),
+) -> None:
+    """List newly created subreddits."""
+    try:
+        if format not in VALID_FORMAT_VALUES:
+            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+
+        asyncio.run(_new_async(limit, format, output))
+    except Exception as e:
+        handle_api_error(e)
 
 
 async def _gold_async(
@@ -261,6 +260,22 @@ async def _gold_async(
             _write_subreddits_output(subreddits, format, output)
 
 
+@subreddits_app.command(name="gold")
+def subreddits_gold(
+    limit: int = typer.Option(25, "--limit", help="Number of results"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    output: str | None = typer.Option(None, "--output", help="Output file path"),
+) -> None:
+    """List Reddit Gold subreddits."""
+    try:
+        if format not in VALID_FORMAT_VALUES:
+            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+
+        asyncio.run(_gold_async(limit, format, output))
+    except Exception as e:
+        handle_api_error(e)
+
+
 async def _default_async(
     limit: int = 25,
     format: str = "display",
@@ -279,3 +294,42 @@ async def _default_async(
                 typer.echo()
         else:
             _write_subreddits_output(subreddits, format, output)
+
+
+@subreddits_app.command(name="default")
+def subreddits_default(
+    limit: int = typer.Option(25, "--limit", help="Number of results"),
+    format: str = typer.Option("display", "--format", help="Output format (display, sql, csv)"),
+    output: str | None = typer.Option(None, "--output", help="Output file path"),
+) -> None:
+    """List default subreddits."""
+    try:
+        if format not in VALID_FORMAT_VALUES:
+            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+
+        asyncio.run(_default_async(limit, format, output))
+    except Exception as e:
+        handle_api_error(e)
+
+
+@subreddits_app.command(name="rules")
+def subreddits_rules(
+    name: str = typer.Argument(..., help="Subreddit name (with or without r/ prefix)"),
+) -> None:
+    """Show subreddit rules."""
+    try:
+        asyncio.run(_rules_async(name))
+    except Exception as e:
+        handle_api_error(e)
+
+
+async def _rules_async(name: str) -> None:
+    """Async implementation of subreddit rules."""
+    async with RedditClient() as client:
+        subreddits_client = SubredditsClient(client)
+        rules_data = await subreddits_client.get_rules(name)
+
+        typer.echo(f"Rules for r/{name}:")
+        for i, rule in enumerate(rules_data.get("rules", []), 1):
+            typer.echo(f"  {i}. {rule.get('short_name', 'N/A')}")
+            typer.echo(f"     {rule.get('description', 'N/A')[:100]}...")
