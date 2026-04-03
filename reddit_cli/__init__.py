@@ -5,7 +5,7 @@ from reddit_cli.commands.comments import comment, comments
 from reddit_cli.commands.navigation import best, frontpage, home
 from reddit_cli.commands.post import post
 from reddit_cli.commands.search import search
-from reddit_cli.commands.subreddit import subreddit, subreddits, subreddits_app
+from reddit_cli.commands.subreddit import subreddit, subreddits_app
 
 
 def show_help() -> None:
