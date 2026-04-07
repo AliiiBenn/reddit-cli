@@ -39,15 +39,15 @@ def posts_to_xlsx(posts: list[Post], sheet_name: str = "Posts") -> bytes:
 
     wb = Workbook()
     ws = wb.active
-    ws.title = sheet_name
+    ws.title = sheet_name  # type: ignore[union-attr]
 
     # Headers
     headers = ["id", "title", "author", "subreddit", "score", "num_comments", "url", "permalink", "created_utc", "selftext"]
-    ws.append(headers)
+    ws.append(headers)  # type: ignore[union-attr]
 
     # Data rows
     for post in posts:
-        ws.append([
+        ws.append([  # type: ignore[union-attr]
             post.id,
             post.title,
             post.author,
@@ -61,9 +61,9 @@ def posts_to_xlsx(posts: list[Post], sheet_name: str = "Posts") -> bytes:
         ])
 
     # Auto-adjust column widths
-    for column in ws.columns:
+    for column in ws.columns:  # type: ignore[union-attr]
         max_length = 0
-        column_letter = column[0].column_letter
+        column_letter = column[0].column_letter  # type: ignore[union-attr]
         for cell in column:
             try:
                 if len(str(cell.value)) > max_length:
@@ -71,7 +71,7 @@ def posts_to_xlsx(posts: list[Post], sheet_name: str = "Posts") -> bytes:
             except Exception:
                 pass
         adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column_letter].width = adjusted_width
+        ws.column_dimensions[column_letter].width = adjusted_width  # type: ignore[union-attr]
 
     buffer = BytesIO()
     wb.save(buffer)
@@ -98,16 +98,16 @@ def comments_to_xlsx(comments: list[Comment], sheet_name: str = "Comments") -> b
 
     wb = Workbook()
     ws = wb.active
-    ws.title = sheet_name
+    ws.title = sheet_name  # type: ignore[union-attr]
 
     # Headers
     headers = ["id", "author", "body", "score", "created_utc", "parent_id", "link_id", "depth"]
-    ws.append(headers)
+    ws.append(headers)  # type: ignore[union-attr]
 
     # Flatten comments and add rows
     def flatten_and_add(comments_list: list[Comment]) -> None:
         for comment in comments_list:
-            ws.append([
+            ws.append([  # type: ignore[union-attr]
                 comment.id,
                 comment.author,
                 comment.body,
@@ -123,9 +123,9 @@ def comments_to_xlsx(comments: list[Comment], sheet_name: str = "Comments") -> b
     flatten_and_add(comments)
 
     # Auto-adjust column widths
-    for column in ws.columns:
+    for column in ws.columns:  # type: ignore[union-attr]
         max_length = 0
-        column_letter = column[0].column_letter
+        column_letter = column[0].column_letter  # type: ignore[union-attr]
         for cell in column:
             try:
                 if len(str(cell.value)) > max_length:
@@ -133,7 +133,7 @@ def comments_to_xlsx(comments: list[Comment], sheet_name: str = "Comments") -> b
             except Exception:
                 pass
         adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column_letter].width = adjusted_width
+        ws.column_dimensions[column_letter].width = adjusted_width  # type: ignore[union-attr]
 
     buffer = BytesIO()
     wb.save(buffer)
@@ -160,15 +160,15 @@ def subreddits_to_xlsx(subreddits: list[Subreddit], sheet_name: str = "Subreddit
 
     wb = Workbook()
     ws = wb.active
-    ws.title = sheet_name
+    ws.title = sheet_name  # type: ignore[union-attr]
 
     # Headers
     headers = ["id", "display_name", "title", "description", "subscribers", "active_users"]
-    ws.append(headers)
+    ws.append(headers)  # type: ignore[union-attr]
 
     # Data rows
     for subreddit in subreddits:
-        ws.append([
+        ws.append([  # type: ignore[union-attr]
             subreddit.id,
             subreddit.display_name,
             subreddit.title,
@@ -178,9 +178,9 @@ def subreddits_to_xlsx(subreddits: list[Subreddit], sheet_name: str = "Subreddit
         ])
 
     # Auto-adjust column widths
-    for column in ws.columns:
+    for column in ws.columns:  # type: ignore[union-attr]
         max_length = 0
-        column_letter = column[0].column_letter
+        column_letter = column[0].column_letter  # type: ignore[union-attr]
         for cell in column:
             try:
                 if len(str(cell.value)) > max_length:
@@ -188,7 +188,7 @@ def subreddits_to_xlsx(subreddits: list[Subreddit], sheet_name: str = "Subreddit
             except Exception:
                 pass
         adjusted_width = min(max_length + 2, 50)
-        ws.column_dimensions[column_letter].width = adjusted_width
+        ws.column_dimensions[column_letter].width = adjusted_width  # type: ignore[union-attr]
 
     buffer = BytesIO()
     wb.save(buffer)
