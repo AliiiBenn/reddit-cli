@@ -2,6 +2,21 @@
 
 Get subreddit information and browse subreddit lists.
 
+## When to Use
+
+Use `reddit subreddit <name>` when you:
+- Want to learn about a specific community
+- Need to see subreddit rules before posting
+- Want to check subscriber count or activity level
+
+Use `reddit subreddits` (no argument) when you:
+- Want to discover new communities
+- Are looking for popular subreddits to join
+- Want to find subreddits related to a topic
+- Need to browse Reddit Gold or default subreddits
+
+**Tip:** If you know the topic but not the subreddit name, try `reddit subreddits --search <keyword>`.
+
 ## Commands
 
 ### Get subreddit info
