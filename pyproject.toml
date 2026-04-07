@@ -3,11 +3,11 @@ name = "better-reddit-cli"
 version = "0.6.0"
 description = "A command-line tool for browsing Reddit without requiring an API key"
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = ["typer", "httpx", "pydantic", "openpyxl>=3.1.0"]
+requires-python = ">=3.12"
+dependencies = ["typer", "httpx", "pydantic", "openpyxl>=3.1.0", "rich"]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-asyncio", "respx", "httpx"]
+dev = ["pytest", "pytest-asyncio", "respx", "httpx", "towncrier", "types-openpyxl"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -19,8 +19,22 @@ python_functions = ["test_*"]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+dev = [
+    "types-openpyxl>=3.1.5.20260402",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["reddit_cli"]
 
 [project.scripts]
 reddit = "reddit_cli:app"
+
+[tool.towncrier]
+directory = "news"
+filename = "CHANGELOG.md"
+version = "0.6.0"
+name = "better-reddit-cli"
+
+[tool.mypy]
+ignore_missing_imports = true

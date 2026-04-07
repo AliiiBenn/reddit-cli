@@ -107,8 +107,8 @@ def sample_post_empty_selftext() -> dict:
     }
 
 
-class TestPost:
-    """Test suite for post command."""
+class TestPostFormat:
+    """Test suite for post format options."""
 
     def test_post_invalid_format(self, runner: CliRunner, mock_reddit_base):
         """post with invalid format should exit with code 2."""

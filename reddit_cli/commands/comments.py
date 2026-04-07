@@ -1,18 +1,22 @@
 import asyncio
 import sys
+from pathlib import Path
+
 import typer
 
-from reddit_cli.errors import handle_api_error, handle_validation_error
+from reddit_cli.commands._shared import _validate_format, validate_output_path
+from reddit_cli.errors import handle_api_error
 from reddit_cli.export import (
     comment_to_sql_insert,
     comment_to_csv_row,
     comment_csv_header,
+    comments_to_json,
 )
 from reddit_cli.reddit import RedditClient, CommentsClient, Comment
 from reddit_cli.xlsx_export import comments_to_xlsx
 
 
-VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx"]
+VALID_FORMAT_VALUES = ["display", "sql", "csv", "xlsx", "json"]
 
 
 def _flatten_comments(comments: list[Comment]) -> list[Comment]:
@@ -57,6 +61,16 @@ def _write_comments_output(
         with open(output_file, "wb") as f:
             f.write(xlsx_data)
         typer.echo(f"Exported {len(flat_comments)} comments to {output_file}")
+        return
+
+    if format_type == "json":
+        output = comments_to_json(flat_comments)
+        if output_file:
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(output)
+            typer.echo(f"Exported {len(flat_comments)} comments to {output_file}")
+        else:
+            typer.echo(output)
         return
 
     lines: list[str] = []
@@ -122,8 +136,12 @@ def comments(
         output: Output file path
     """
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
+
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
 
         comments_list = asyncio.run(_comments_async(post_id, sort, depth))
 
@@ -131,7 +149,7 @@ def comments(
             for comment in comments_list:
                 _print_comment(comment)
         else:
-            _write_comments_output(comments_list, format, output)
+            _write_comments_output(comments_list, format, str(output_path) if output_path else None)
     except Exception as e:
         handle_api_error(e)
 
@@ -153,10 +171,14 @@ def comment(
         output: Output file path
     """
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
 
-        asyncio.run(_comment_async(post_id, comment_id, replies, format, output))
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
+
+        asyncio.run(_comment_async(post_id, comment_id, replies, format, str(output_path) if output_path else None))
     except Exception as e:
         handle_api_error(e)
 
