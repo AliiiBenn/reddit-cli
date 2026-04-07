@@ -36,6 +36,8 @@ reddit best --period year --limit 100
 | `--period` | Time range: day, week, month, year, all |
 | `--after` | Get posts after this ID |
 | `--before` | Get posts before this ID |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ## Examples
 

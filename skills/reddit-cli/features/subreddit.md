@@ -46,6 +46,8 @@ Displays the subreddit's rules instead of info.
 | `--new` | List newly created subreddits |
 | `--gold` | List Reddit Gold subreddits |
 | `--default` | List default subreddits |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ## Examples
 

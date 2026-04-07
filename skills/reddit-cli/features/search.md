@@ -32,6 +32,8 @@ reddit search rust --sort new
 | `--sort` | Sort by: relevance, hot, top, new, comments (default: relevance) |
 | `--limit` | Number of results: 1-100 (default: 25) |
 | `--period` | Time range: hour, day, week, month, year, all |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ## Search vs Browse
 

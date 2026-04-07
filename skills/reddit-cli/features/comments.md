@@ -26,12 +26,16 @@ reddit comment <post_id> <comment_id> --replies
 |--------|-------------|
 | `--sort` | Sort by: confidence, top, new, old, controversial, qa (default: confidence) |
 | `--depth` | Maximum nesting depth (1 = top-level only) |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ### Single Comment Options
 
 | Option | Description |
 |--------|-------------|
 | `--replies` | Include nested replies |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ## Sort Options
 

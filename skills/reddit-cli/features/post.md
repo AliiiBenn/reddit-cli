@@ -35,6 +35,13 @@ Reddit post IDs are prefixed with `t3_`. The CLI accepts both:
 - `t3_abc123def` (full ID)
 - `abc123def` (short ID)
 
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
+
 ## Related Commands
 
 | Command | Description |

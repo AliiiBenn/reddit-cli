@@ -19,6 +19,8 @@ reddit browse <subreddit> [options]
 | `--after` | Get posts after this ID (for pagination) |
 | `--before` | Get posts before this ID (for pagination) |
 | `--search` | Search within the subreddit instead of listing |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ## Examples
 

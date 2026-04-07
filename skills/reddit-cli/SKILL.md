@@ -49,6 +49,32 @@ reddit subreddit python --rules
 - **Async requests** - fast, non-blocking
 - **Retry logic** - automatic retry on rate limits
 - **Input validation** - clear error messages
+- **Rich terminal output** - colored tables, formatted posts/comments
+- **Multiple export formats** - display, csv, sql, json, xlsx
+- **Shell completion** - bash, zsh, fish, powershell
+- **File caching** - 5-minute cache for faster repeated queries
+
+## Output Formats
+
+All browse/search/Comments commands support `--format`:
+
+| Format | Description |
+|--------|-------------|
+| `display` | Pretty printed terminal output (default) |
+| `csv` | CSV export with headers |
+| `sql` | SQL INSERT statements |
+| `json` | JSON format |
+| `xlsx` | Excel spreadsheet (requires --output) |
+
+## Shell Completion
+
+```bash
+# Install completion for your shell
+reddit completion --shell bash
+reddit completion --shell zsh
+reddit completion --shell fish
+reddit completion --shell powershell
+```
 
 ## Additional Resources
 
