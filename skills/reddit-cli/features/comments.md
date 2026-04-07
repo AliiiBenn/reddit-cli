@@ -2,6 +2,20 @@
 
 View comments for a post or view a specific comment.
 
+## When to Use
+
+Use `reddit comments <post_id>` when you:
+- Want to read the discussion on a specific post
+- Need to see community reactions and opinions
+- Want to find the best comments (sort by top/confidence)
+
+Use `reddit comment <post_id> <comment_id>` when you:
+- Want to reference a specific comment
+- Need to see a comment's replies
+- Are building a discussion thread analysis
+
+**Note:** Comments are fetched with a default sort of "confidence" (best first).
+
 ## Commands
 
 ### View all comments
@@ -26,12 +40,16 @@ reddit comment <post_id> <comment_id> --replies
 |--------|-------------|
 | `--sort` | Sort by: confidence, top, new, old, controversial, qa (default: confidence) |
 | `--depth` | Maximum nesting depth (1 = top-level only) |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ### Single Comment Options
 
 | Option | Description |
 |--------|-------------|
 | `--replies` | Include nested replies |
+| `--format` | Output format: display, csv, sql, json, xlsx |
+| `--output` | Write to file instead of stdout |
 
 ## Sort Options
 
