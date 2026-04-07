@@ -1,5 +1,4 @@
 """Unit tests for export utilities (SQL and CSV formatting)."""
-import pytest
 from reddit_cli.export import (
     escape_sql_value,
     post_to_sql_insert,

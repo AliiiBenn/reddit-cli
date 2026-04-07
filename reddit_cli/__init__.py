@@ -128,8 +128,6 @@ def install_completion(
     - fish: reddit completion fish > ~/.config/fish/completions/reddit.fish
     - powershell: reddit completion powershell >> $PROFILE
     """
-    from typer import complete
-
     if not shell:
         typer.echo("Please specify a shell: --shell bash|zsh|fish|powershell")
         raise typer.Exit(code=1)
@@ -137,16 +135,16 @@ def install_completion(
     prog_name = "reddit"
 
     if shell == "bash":
-        typer.echo(f"Run this command to enable bash completion:")
+        typer.echo("Run this command to enable bash completion:")
         typer.echo(f"  eval \"$({prog_name} --show-completion bash)\"")
     elif shell == "zsh":
-        typer.echo(f"Run this command to enable zsh completion:")
+        typer.echo("Run this command to enable zsh completion:")
         typer.echo(f"  eval \"$({prog_name} --show-completion zsh)\"")
     elif shell == "fish":
-        typer.echo(f"Run this command to enable fish completion:")
+        typer.echo("Run this command to enable fish completion:")
         typer.echo(f"  {prog_name} --show-completion fish > ~/.config/fish/completions/{prog_name}.fish")
     elif shell == "powershell":
-        typer.echo(f"Run this command to enable powershell completion:")
+        typer.echo("Run this command to enable powershell completion:")
         typer.echo(f"  {prog_name} --show-completion powershell >> $PROFILE")
     else:
         typer.echo(f"Unsupported shell: {shell}")

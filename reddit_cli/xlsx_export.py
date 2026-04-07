@@ -68,7 +68,7 @@ def posts_to_xlsx(posts: list[Post], sheet_name: str = "Posts") -> bytes:
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except Exception:
                 pass
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column_letter].width = adjusted_width
@@ -130,7 +130,7 @@ def comments_to_xlsx(comments: list[Comment], sheet_name: str = "Comments") -> b
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except Exception:
                 pass
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column_letter].width = adjusted_width
@@ -185,7 +185,7 @@ def subreddits_to_xlsx(subreddits: list[Subreddit], sheet_name: str = "Subreddit
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except Exception:
                 pass
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column_letter].width = adjusted_width

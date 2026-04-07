@@ -1,9 +1,7 @@
 """Simple file-based caching for Reddit API responses."""
 import json
 import hashlib
-import os
 from pathlib import Path
-from typing import Any
 from datetime import datetime, timedelta
 
 # Cache directory location
