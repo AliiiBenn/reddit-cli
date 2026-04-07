@@ -2,6 +2,20 @@
 
 Browse Reddit's frontpage and top posts.
 
+## When to Use
+
+Use `reddit frontpage` or `reddit home` when you:
+- Want to see what's trending on Reddit right now
+- Start your Reddit session without a specific topic in mind
+- Want to discover popular content across all of Reddit
+
+Use `reddit best` when you:
+- Want to see the all-time best posts on Reddit
+- Are looking for highly-regarded content worth reading
+- Want a curated "best of" Reddit experience
+
+**Tip:** These are great starting points if you're new to Reddit or just browsing casually.
+
 ## Commands
 
 ### `reddit frontpage`

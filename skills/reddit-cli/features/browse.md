@@ -2,6 +2,18 @@
 
 Browse posts from any subreddit.
 
+## When to Use
+
+Use `reddit browse` when you:
+- Want to explore posts in a specific subreddit (e.g., r/python, r/programming)
+- Know which subreddit you want to read
+- Need to browse posts sorted by hot/new/top within a community
+- Want to filter by time period (week, month, year)
+
+**Don't use browse when:**
+- You don't know which subreddit to look at → use `reddit search` instead
+- You want to find a specific post → use `reddit search <query>` instead
+
 ## Command
 
 ```bash

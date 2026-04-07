@@ -2,6 +2,20 @@
 
 View comments for a post or view a specific comment.
 
+## When to Use
+
+Use `reddit comments <post_id>` when you:
+- Want to read the discussion on a specific post
+- Need to see community reactions and opinions
+- Want to find the best comments (sort by top/confidence)
+
+Use `reddit comment <post_id> <comment_id>` when you:
+- Want to reference a specific comment
+- Need to see a comment's replies
+- Are building a discussion thread analysis
+
+**Note:** Comments are fetched with a default sort of "confidence" (best first).
+
 ## Commands
 
 ### View all comments

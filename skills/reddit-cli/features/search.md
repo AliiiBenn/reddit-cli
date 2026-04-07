@@ -2,6 +2,18 @@
 
 Search for posts across all of Reddit.
 
+## When to Use
+
+Use `reddit search` when you:
+- Don't know which subreddit to look at
+- Want to find posts about a specific topic or keyword
+- Are looking for something across all of Reddit
+- Want to discover communities related to a topic
+
+**Don't use search when:**
+- You already know the subreddit → use `reddit browse <subreddit> --search` instead
+- You want to browse a community's recent posts → use `reddit browse <subreddit>` instead
+
 ## Command
 
 ```bash
