@@ -8,6 +8,7 @@ from reddit_cli.export import (
     post_csv_header,
 )
 from reddit_cli.reddit import RedditClient, PostsClient
+from reddit_cli.ui import print_posts
 from reddit_cli.xlsx_export import posts_to_xlsx
 
 
@@ -84,13 +85,8 @@ def _write_posts_output(
 
 
 def _display_posts(posts: list, after_cursor: str | None, before_cursor: str | None) -> None:
-    """Display posts in terminal format."""
-    for post in posts:
-        typer.echo(f"[{post.score}] {post.title}")
-        typer.echo(f"  ID: {post.id}")
-        typer.echo(f"  r/{post.subreddit} by {post.author}")
-        typer.echo(f"  {post.num_comments} comments")
-        typer.echo()
+    """Display posts in terminal format using Rich."""
+    print_posts(posts)
 
     if after_cursor or before_cursor:
         typer.echo("---")

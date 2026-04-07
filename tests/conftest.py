@@ -14,8 +14,25 @@ def runner() -> CliRunner:
 
 @pytest.fixture
 def mock_reddit_base():
-    """Create a respx mock for Reddit API."""
+    """Create a respx mock for Reddit API.
+
+    Note: This fixture does not assert all mocks are called by default, since
+    some tests (e.g., validation tests) intentionally set up mocks that won't be
+    called due to validation failing first. Use mock_reddit_base_strict for
+    tests that need to verify all mocks were called.
+    """
     with respx.mock(base_url="https://www.reddit.com", assert_all_called=False) as respx_mock:
+        yield respx_mock
+
+
+@pytest.fixture
+def mock_reddit_base_strict():
+    """Create a respx mock that asserts all routes were called.
+
+    Use this fixture for tests that must verify all mocked endpoints were
+    actually called (to prevent tests from passing when the mock isn't used).
+    """
+    with respx.mock(base_url="https://www.reddit.com", assert_all_called=True) as respx_mock:
         yield respx_mock
 
 

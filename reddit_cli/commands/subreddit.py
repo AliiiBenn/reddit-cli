@@ -1,7 +1,13 @@
 import asyncio
 import sys
+from pathlib import Path
+
 import typer
 
+from reddit_cli.commands._shared import (
+    _validate_format,
+    validate_output_path,
+)
 from reddit_cli.errors import handle_api_error, handle_validation_error
 from reddit_cli.export import (
     subreddit_to_sql_insert,
@@ -9,6 +15,7 @@ from reddit_cli.export import (
     subreddit_csv_header,
 )
 from reddit_cli.reddit import RedditClient, SubredditsClient
+from reddit_cli.ui import print_table
 from reddit_cli.xlsx_export import subreddits_to_xlsx
 
 
@@ -65,6 +72,19 @@ def _write_subreddits_output(
         typer.echo(output)
 
 
+def _display_subreddits_table(subreddits: list, show_nsfw: bool = False) -> None:
+    """Display subreddits in a table format using Rich."""
+    data = [
+        {
+            "Name": f"r/{sub.display_name}{' [NSFW]' if show_nsfw and getattr(sub, 'over_18', False) else ''}",
+            "Title": sub.title[:50] + "..." if len(sub.title) > 50 else sub.title,
+            "Subscribers": f"{sub.subscribers:,}",
+        }
+        for sub in subreddits
+    ]
+    print_table(data, ["Name", "Title", "Subscribers"])
+
+
 async def _subreddit_async(
     name: str,
     rules: bool = False,
@@ -100,8 +120,12 @@ def subreddit(
         output: Output file path
     """
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
+
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
 
         subreddit_obj, rules_data = asyncio.run(_subreddit_async(name, rules))
 
@@ -121,7 +145,7 @@ def subreddit(
                 ).decode(sys.stdout.encoding)
                 typer.echo(f"Description: {desc[:300]}{'...' if len(desc) > 300 else ''}")
             else:
-                _write_subreddits_output([subreddit_obj], format, output)
+                _write_subreddits_output([subreddit_obj], format, str(output_path) if output_path else None)
     except Exception as e:
         handle_api_error(e)
 
@@ -153,19 +177,20 @@ def subreddits_popular(
 ) -> None:
     """List popular subreddits."""
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
 
         _validate_list_params(sort, limit)
+
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
+
         subreddits_list = asyncio.run(_list_subreddits_async(sort, limit))
         if format == "display":
-            for sub in subreddits_list:
-                typer.echo(f"r/{sub.display_name}")
-                typer.echo(f"  {sub.title}")
-                typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                typer.echo()
+            _display_subreddits_table(subreddits_list)
         else:
-            _write_subreddits_output(subreddits_list, format, output)
+            _write_subreddits_output(subreddits_list, format, str(output_path) if output_path else None)
     except Exception as e:
         handle_api_error(e)
 
@@ -188,12 +213,7 @@ async def _search_async(
             return
 
         if format == "display":
-            for sub in subreddits:
-                nsfw_tag = " [NSFW]" if getattr(sub, "over_18", False) else ""
-                typer.echo(f"r/{sub.display_name}{nsfw_tag}")
-                typer.echo(f"  {sub.title}")
-                typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                typer.echo()
+            _display_subreddits_table(subreddits, show_nsfw=True)
         else:
             _write_subreddits_output(subreddits, format, output)
 
@@ -207,10 +227,14 @@ def subreddits_search(
 ) -> None:
     """Search subreddits by keyword."""
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
 
-        asyncio.run(_search_async(query, limit, format, output))
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
+
+        asyncio.run(_search_async(query, limit, format, str(output_path) if output_path else None))
     except Exception as e:
         handle_api_error(e)
 
@@ -226,11 +250,7 @@ async def _new_async(
         subreddits = await subreddits_client.list_new(limit)
 
         if format == "display":
-            for sub in subreddits:
-                typer.echo(f"r/{sub.display_name}")
-                typer.echo(f"  {sub.title}")
-                typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                typer.echo()
+            _display_subreddits_table(subreddits)
         else:
             _write_subreddits_output(subreddits, format, output)
 
@@ -243,10 +263,14 @@ def subreddits_new(
 ) -> None:
     """List newly created subreddits."""
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
 
-        asyncio.run(_new_async(limit, format, output))
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
+
+        asyncio.run(_new_async(limit, format, str(output_path) if output_path else None))
     except Exception as e:
         handle_api_error(e)
 
@@ -262,11 +286,7 @@ async def _gold_async(
         subreddits = await subreddits_client.list_gold(limit)
 
         if format == "display":
-            for sub in subreddits:
-                typer.echo(f"r/{sub.display_name}")
-                typer.echo(f"  {sub.title}")
-                typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                typer.echo()
+            _display_subreddits_table(subreddits)
         else:
             _write_subreddits_output(subreddits, format, output)
 
@@ -279,10 +299,14 @@ def subreddits_gold(
 ) -> None:
     """List Reddit Gold subreddits."""
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
 
-        asyncio.run(_gold_async(limit, format, output))
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
+
+        asyncio.run(_gold_async(limit, format, str(output_path) if output_path else None))
     except Exception as e:
         handle_api_error(e)
 
@@ -298,11 +322,7 @@ async def _default_async(
         subreddits = await subreddits_client.list_default(limit)
 
         if format == "display":
-            for sub in subreddits:
-                typer.echo(f"r/{sub.display_name}")
-                typer.echo(f"  {sub.title}")
-                typer.echo(f"  Subscribers: {sub.subscribers:,}")
-                typer.echo()
+            _display_subreddits_table(subreddits)
         else:
             _write_subreddits_output(subreddits, format, output)
 
@@ -315,10 +335,14 @@ def subreddits_default(
 ) -> None:
     """List default subreddits."""
     try:
-        if format not in VALID_FORMAT_VALUES:
-            handle_validation_error("format", VALID_FORMAT_VALUES, format)
+        _validate_format(format)
 
-        asyncio.run(_default_async(limit, format, output))
+        # Validate output path if provided
+        output_path = None
+        if output:
+            output_path = validate_output_path(Path(output))
+
+        asyncio.run(_default_async(limit, format, str(output_path) if output_path else None))
     except Exception as e:
         handle_api_error(e)
 

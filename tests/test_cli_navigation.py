@@ -124,18 +124,7 @@ class TestNavigationPagination:
         )
         result = runner.invoke(app, ["best", "--after", "t3_previous"])
         assert result.exit_code == 0
-class TestNavigationDisplayFormat:
-    """Test display format with cursors."""
 
-    def test_frontpage_display_shows_after_cursor(self, runner, mock_reddit_base, sample_navigation_response):
-        sample_navigation_response["data"]["after"] = "t3_after123"
-        sample_navigation_response["data"]["before"] = None
-        mock_reddit_base.get("/r/reddit/hot.json").mock(
-            return_value=httpx.Response(200, json=sample_navigation_response)
-        )
-        result = runner.invoke(app, ["frontpage"])
-        assert result.exit_code == 0
-        assert "After: t3_after123" in result.output
 
 class TestNavigationDisplayFormat:
     """Test display format with cursors."""
@@ -170,6 +159,7 @@ class TestNavigationDisplayFormat:
         assert result.exit_code == 0
         assert "After: t3_after123" in result.output
         assert "Before: t3_before456" in result.output
+
 
 class TestNavigationFormatOptions:
     """Test format options for navigation commands."""

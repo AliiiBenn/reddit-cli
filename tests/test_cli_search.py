@@ -124,7 +124,7 @@ class TestSearch:
         )
         result = runner.invoke(app, ["search", "python", "--format", "display"])
         assert result.exit_code == 0
-        assert "[500]" in result.output
+        assert "500" in result.output
         assert "How to learn Python in 2024" in result.output
 
     def test_search_format_xlsx_with_output(
