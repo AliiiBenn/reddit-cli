@@ -1,6 +1,6 @@
 [project]
 name = "better-reddit-cli"
-version = "0.8.1"
+version = "0.9.0"
 description = "A command-line tool for browsing Reddit without requiring an API key"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -33,7 +33,7 @@ reddit = "reddit_cli:app"
 [tool.towncrier]
 directory = "news"
 filename = "CHANGELOG.md"
-version = "0.8.1"
+version = "0.9.0"
 name = "better-reddit-cli"
 
 [tool.mypy]
